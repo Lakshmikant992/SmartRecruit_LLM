@@ -79,6 +79,7 @@ body.dark .page-header .page-title {
             </div>
             <div class="job-details">
                 <p><strong>Location:</strong> {{ job.location }}</p>
+                <p><strong>Experience:</strong> {{ job.experience }}</p>
                 <p><strong>Description:</strong> {{ job.description | truncate(100) }}</p>
                 <p><strong>Salary:</strong> {{ job.salary }}</p>
                 <p><strong>Date Posted:</strong> {{ job.date_posted.strftime('%Y-%m-%d') }}</p>

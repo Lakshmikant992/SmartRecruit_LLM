@@ -10,7 +10,8 @@
     <title>{% block title %}Home{% endblock %}</title>
 </head>
 <body>
-    <nav>
+    <div class="nav-scrim" data-nav-close aria-hidden="true"></div>
+    <nav aria-label="Primary navigation">
         <div class="logo-name">
             <div class="logo-image">
                 <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
@@ -18,22 +19,66 @@
         </div>
         <div class="menu-items">
             <ul class="nav-links">
-                <li><a href="{{ url_for('main.home') }}">
+                <li><a href="{{ url_for('main.student_dashboard' if user and user.role == 'student' else 'main.home') }}">
                     <i class="uil uil-estate"></i>
                     <span class="link-name">Home</span>
                 </a></li>
-                <li><a href="{{ url_for('main.view_applications') }}">
+                {% if user and user.role == 'student' %}
+                <li><a href="{{ url_for('main.student_jobs') }}">
+                    <i class="uil uil-briefcase"></i>
+                    <span class="link-name">Browse Jobs</span>
+                </a></li>
+                <li><a href="{{ url_for('main.student_applications') }}">
                     <i class="uil uil-list-ul"></i>
                     <span class="link-name">My Applications</span>
+                </a></li>
+                <li><a href="{{ url_for('main.student_profile') }}">
+                    <i class="uil uil-user"></i>
+                    <span class="link-name">My Profile</span>
+                </a></li>
+                {% elif user and user.role == 'admin' %}
+                <li><a href="{{ url_for('main.admin_dashboard') }}">
+                    <i class="uil uil-dashboard"></i>
+                    <span class="link-name">Admin Dashboard</span>
+                </a></li>
+                <li><a href="{{ url_for('main.admin_dashboard', section='users') }}">
+                    <i class="uil uil-users-alt"></i>
+                    <span class="link-name">Users</span>
+                </a></li>
+                <li><a href="{{ url_for('main.admin_dashboard', section='jobs') }}">
+                    <i class="uil uil-briefcase"></i>
+                    <span class="link-name">Jobs</span>
+                </a></li>
+                <li><a href="{{ url_for('main.admin_dashboard', section='interviews') }}">
+                    <i class="uil uil-calendar-alt"></i>
+                    <span class="link-name">Interviews</span>
+                </a></li>
+                {% else %}
+                <li><a href="{{ url_for('main.recruiter_applications') }}">
+                    <i class="uil uil-list-ul"></i>
+                    <span class="link-name">Job Applications</span>
                 </a></li>
                 <li><a href="{{ url_for('main.my_jobs') }}">
                     <i class="uil uil-briefcase"></i>
                     <span class="link-name">My Jobs</span>
                 </a></li>
+                <li><a href="{{ url_for('main.resume_screening') }}">
+                    <i class="uil uil-robot"></i>
+                    <span class="link-name">AI Screening</span>
+                </a></li>
+                <li><a href="{{ url_for('main.recruiter_interviews') }}">
+                    <i class="uil uil-calendar-alt"></i>
+                    <span class="link-name">Interviews</span>
+                </a></li>
+                <li><a href="{{ url_for('main.recruiter_interview_schedule') }}">
+                    <i class="uil uil-schedule"></i>
+                    <span class="link-name">Interview Schedule</span>
+                </a></li>
                 <li><a href="{{ url_for('main.settings') }}">
                     <i class="uil uil-setting"></i>
                     <span class="link-name">Settings</span>
                 </a></li>
+                {% endif %}
                 <!-- Add more links if needed -->
             </ul>
             <ul class="logout-mode">
@@ -55,15 +100,25 @@
     </nav>
     <section class="dashboard">
         <div class="top">
-            <i class="uil uil-bars sidebar-toggle"></i>
-            {% if user and user.profile_photo %}
-                <a href="{{ url_for('main.settings') }}">
-                    <img src="{{ url_for('static', filename='uploads/photos/' + user.profile_photo) }}" alt="Profile Photo">
-                </a>
+            {% if user and user.role == 'admin' %}
+                <div class="admin-topbar-title">Dashboard overview</div>
+                <div class="admin-topbar-actions">
+                    <label class="admin-topbar-search"><i class="uil uil-search"></i><input type="search" placeholder="Search dashboard" aria-label="Search dashboard"></label>
+                    <button class="admin-notification" type="button" aria-label="Notifications"><i class="uil uil-bell"></i><span></span></button>
+                    <a class="admin-profile" href="{{ url_for('main.settings') }}"><span class="admin-profile-avatar">{{ user.first_name[:1] }}{{ user.last_name[:1] }}</span><span><strong>{{ user.first_name }} {{ user.last_name }}</strong><small>Administrator</small></span><i class="uil uil-angle-down"></i></a>
+                </div>
             {% else %}
-                <a href="{{ url_for('main.settings') }}">
-                    <img src="{{ url_for('static', filename='images/default-profile.png') }}" alt="Default Profile Photo">
-                </a>
+                <i class="uil uil-bars sidebar-toggle"></i>
+                {% if user and user.profile_photo %}
+                    <a href="{{ url_for('main.student_profile' if user.role == 'student' else 'main.settings') }}">
+                        <img src="{{ url_for('static', filename='uploads/photos/' + user.profile_photo) }}" alt="Profile photo for {{ user.first_name }} {{ user.last_name }}" onerror="this.hidden=true; this.nextElementSibling.hidden=false;">
+                        <span class="avatar-fallback" hidden>{{ user.first_name[:1] }}{{ user.last_name[:1] }}</span>
+                    </a>
+                {% else %}
+                    <a href="{{ url_for('main.student_profile' if user and user.role == 'student' else 'main.settings') }}">
+                        <span class="avatar-fallback" aria-label="Profile initials">{{ user.first_name[:1] }}{{ user.last_name[:1] }}</span>
+                    </a>
+                {% endif %}
             {% endif %}
         </div>
         <div class="dash-content">

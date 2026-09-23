@@ -42,13 +42,10 @@
         color: #fff; /* Light text color for readability */
     }
 
-    /* Table Styles */
-    .applications-wrapper {
-        text-align: center; /* Center-align table and button */
-    }
+    .applications-wrapper { max-width: 1050px; margin: 0 auto; }
 
     .applications-table {
-        width: 80%; /* Center table and adjust width */
+        width: 100%;
         margin: 0 auto; /* Center table horizontally */
         border-collapse: collapse;
         margin-bottom: 20px;
@@ -73,6 +70,15 @@
     .applications-table tr:hover {
         background-color: #f1f1f1;
     }
+
+    .status-badge { border-radius: 999px; display: inline-block; font-size: 12px; font-weight: 700; padding: 6px 10px; }
+    .status-applied { background: #e8f1ff; color: #2058a5; }
+    .status-under-review { background: #fff3cc; color: #7a5200; }
+    .status-interview, .status-ongoing { background: #dff0ff; color: #1769aa; }
+    .status-completed, .status-offered { background: #dff7e7; color: #16713b; }
+    .status-rejected { background: #ffe3e3; color: #a52828; }
+    .empty-state { background: var(--panel-color); border-radius: 10px; color: #6d6d6d; padding: 38px 20px; text-align: center; }
+    .empty-state a { background: #ffaf00; border-radius: 6px; color: #fff; display: inline-block; margin-top: 10px; padding: 9px 13px; text-decoration: none; }
 
     .view-details-button {
         display: inline-block; /* Ensure button is inline-block for centering */
@@ -126,6 +132,7 @@
         <i class="uil uil-list icon"></i>
         <h1 class="page-title">My Applications</h1>
     </div>
+    {% if applications %}
     <table class="applications-table">
         <thead>
             <tr>
@@ -139,10 +146,17 @@
             <tr>
                 <td>{{ application.job_title }}</td>
                 <td>{{ application.application_date }}</td>
-                <td>{{ application.status }}</td>
+                <td><span class="status-badge status-{{ application.status|lower|replace(' ', '-') }}">{{ application.status }}</span></td>
             </tr>
             {% endfor %}
         </tbody>
     </table>
+    {% else %}
+    <div class="empty-state">
+        <h2>No applications yet</h2>
+        <p>Explore jobs to get started.</p>
+        <a href="{{ url_for('main.my_jobs') }}">Explore Jobs</a>
+    </div>
+    {% endif %}
 </div>
 {% endblock %}

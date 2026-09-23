@@ -1,0 +1,250 @@
+{% extends 'base.html' %}
+
+{% block title %}AI Resume Screening{% endblock %}
+
+{% block content %}
+<style>
+    .screening-page {
+        --ink: #17202a;
+        --muted: #718096;
+        --line: #e9edf2;
+        --soft: #f7f9fb;
+        --green: #16a085;
+        --amber: #f5a623;
+        color: var(--ink);
+        max-width: 1380px;
+        margin: 0 auto;
+    }
+
+    .screening-hero {
+        background: linear-gradient(120deg, #17202a 0%, #243746 62%, #236b62 100%);
+        border-radius: 16px;
+        color: #fff;
+        padding: clamp(24px, 4vw, 42px);
+        display: flex;
+        justify-content: space-between;
+        align-items: flex-end;
+        gap: 24px;
+        overflow: hidden;
+        position: relative;
+    }
+
+    .screening-hero:after {
+        content: '';
+        position: absolute;
+        width: 220px;
+        height: 220px;
+        border: 1px solid rgba(255,255,255,.18);
+        border-radius: 50%;
+        right: 7%;
+        top: -100px;
+    }
+
+    .eyebrow { color: #8fe1c5; font-size: 12px; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; }
+    .screening-hero h1 { font-size: clamp(26px, 3vw, 42px); line-height: 1.05; margin: 8px 0 10px; }
+    .screening-hero p { color: #d7e7e3; max-width: 590px; margin: 0; font-size: 14px; }
+    .job-picker { min-width: min(100%, 290px); position: relative; z-index: 1; }
+    .job-picker label { display: block; color: #b7d6cf; font-size: 11px; font-weight: 600; margin-bottom: 7px; text-transform: uppercase; letter-spacing: .08em; }
+    .job-picker select { width: 100%; border: 0; border-radius: 8px; background: #fff; color: #17202a; padding: 13px 14px; font: inherit; font-size: 13px; outline: none; }
+    .job-picker select option { background: #fff; color: #17202a; }
+
+    .screening-body { padding-top: 22px; }
+    .upload-panel { margin-bottom: 22px; }
+    .upload-grid { display: grid; grid-template-columns: 1.1fr .9fr; gap: 16px; }
+    .field { display: grid; gap: 7px; margin-bottom: 13px; }
+    .field label { color: var(--muted); font-size: 11px; font-weight: 600; letter-spacing: .05em; text-transform: uppercase; }
+    .field textarea, .field input, .field select { background: var(--panel-color); border: 1px solid var(--line); border-radius: 7px; color: var(--ink); font: inherit; font-size: 12px; padding: 10px 11px; width: 100%; }
+    .field textarea { min-height: 104px; resize: vertical; }
+    .field input[type=file] { padding: 8px; }
+    .field small { color: var(--muted); font-size: 10px; }
+    .control-row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .upload-actions { align-items: center; display: flex; gap: 12px; justify-content: space-between; margin-top: 4px; }
+    .primary-button { background: var(--green); border: 0; border-radius: 7px; color: #fff; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; padding: 11px 15px; }
+    .primary-button:disabled { cursor: wait; opacity: .6; }
+    .privacy-note { color: var(--muted); font-size: 11px; line-height: 1.45; max-width: 440px; }
+    .upload-result { background: #edf9f4; border-radius: 7px; color: #187b62; display: none; font-size: 11px; line-height: 1.5; margin-top: 12px; padding: 11px; }
+    .upload-result.error { background: #fff0ed; color: #b34e3a; }
+    .tag-list { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 9px; }
+    .tag { background: #e5f5ef; border-radius: 20px; color: #187b62; font-size: 10px; padding: 5px 8px; }
+    .screening-kpis { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-bottom: 22px; }
+    .kpi, .screening-panel { background: var(--panel-color); border: 1px solid var(--line); border-radius: 12px; }
+    .kpi { padding: 18px; }
+    .kpi-label { color: var(--muted); font-size: 12px; }
+    .kpi-value { font-size: 28px; font-weight: 600; margin-top: 6px; }
+    .kpi-note { color: var(--green); font-size: 11px; margin-top: 2px; }
+    .screening-grid { display: grid; grid-template-columns: minmax(0, 1.6fr) minmax(280px, .8fr); gap: 18px; align-items: start; }
+    .screening-panel { padding: 20px; overflow: hidden; }
+    .panel-heading { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .panel-heading h2 { font-size: 17px; margin: 0; }
+    .panel-heading span { color: var(--muted); font-size: 12px; }
+    .candidate-list { display: grid; gap: 10px; }
+    .candidate { display: grid; grid-template-columns: 42px minmax(130px, 1fr) 96px 82px; align-items: center; gap: 14px; padding: 13px 0; border-top: 1px solid var(--line); }
+    .candidate-select { width: 17px; height: 17px; accent-color: var(--green); }
+    .compare-actions { display: flex; justify-content: flex-end; align-items: center; gap: 10px; margin-bottom: 12px; }
+    .compare-button { background: var(--green); border: 0; border-radius: 7px; color: #fff; cursor: pointer; font: inherit; font-size: 12px; font-weight: 600; padding: 10px 13px; }
+    .compare-button:disabled { cursor: not-allowed; opacity: .5; }
+    .candidate:first-child { border-top: 0; padding-top: 0; }
+    .avatar { width: 40px; height: 40px; display: grid; place-items: center; border-radius: 50%; background: #d8f2e8; color: #187b62; font-weight: 600; font-size: 13px; }
+    .candidate-name { font-size: 13px; font-weight: 600; }
+    .candidate-meta { color: var(--muted); font-size: 11px; margin-top: 3px; }
+    .score-wrap { text-align: right; }
+    .score { font-size: 17px; font-weight: 600; }
+    .score-label { color: var(--muted); font-size: 10px; }
+    .progress { background: #edf1f4; height: 6px; border-radius: 6px; margin-top: 6px; overflow: hidden; }
+    .progress i { display: block; height: 100%; background: var(--green); border-radius: inherit; }
+    .status { justify-self: end; background: #e6f7ef; border-radius: 20px; color: #16815f; font-size: 10px; padding: 5px 9px; }
+    .status.review { background: #fff4dd; color: #a36b00; }
+    .insight-list { display: grid; gap: 14px; }
+    .insight { display: flex; gap: 11px; align-items: flex-start; padding-bottom: 14px; border-bottom: 1px solid var(--line); }
+    .insight:last-child { border-bottom: 0; padding-bottom: 0; }
+    .insight i { color: var(--green); font-size: 19px; }
+    .insight strong { display: block; font-size: 12px; margin-bottom: 3px; }
+    .insight p { color: var(--muted); font-size: 11px; line-height: 1.55; margin: 0; }
+    .empty-state { color: var(--muted); padding: 32px 12px; text-align: center; font-size: 13px; }
+    .evidence { margin-top: 18px; }
+    .evidence-table { width: 100%; border-collapse: collapse; font-size: 11px; }
+    .evidence-table th, .evidence-table td { border-bottom: 1px solid var(--line); padding: 11px 8px; text-align: left; vertical-align: top; }
+    .evidence-table th { color: var(--muted); font-size: 10px; text-transform: uppercase; letter-spacing: .06em; }
+    .evidence-table td:last-child { color: var(--green); font-weight: 600; text-align: right; }
+    body.dark .screening-page { --ink: #f0f3f5; --muted: #aab4bc; --line: #3b4044; --soft: #303437; }
+    body.dark .avatar { background: #254b43; color: #9ce2ca; }
+    body.dark .progress { background: #3b4044; }
+    body.dark .status { background: #214a3b; color: #9ce2ca; }
+    body.dark .status.review { background: #51411f; color: #f4cf7a; }
+    @media (max-width: 980px) { .screening-kpis { grid-template-columns: repeat(2, 1fr); } .screening-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 760px) { .upload-grid { grid-template-columns: 1fr; } }
+    @media (max-width: 620px) {
+        .screening-hero { align-items: stretch; flex-direction: column; }
+        .job-picker { min-width: 0; }
+        .screening-kpis { gap: 9px; }
+        .kpi { padding: 13px; }
+        .kpi-value { font-size: 22px; }
+        .candidate { grid-template-columns: 38px minmax(0, 1fr) 70px; gap: 9px; }
+        .candidate .status { grid-column: 2 / -1; justify-self: start; margin-top: -4px; }
+        .candidate .avatar { width: 36px; height: 36px; }
+        .screening-panel { padding: 15px; }
+        .evidence-table { min-width: 500px; }
+        .evidence { overflow-x: auto; }
+    }
+</style>
+
+<main class="screening-page">
+    <section class="screening-hero">
+        <div>
+            <div class="eyebrow">Recruiting intelligence</div>
+            <h1>AI resume screening</h1>
+            <p>See which applicants best match the role, understand why they rank highly, and move from shortlist to interview with confidence.</p>
+        </div>
+        <div class="job-picker">
+            <label for="screeningJob">Screening for</label>
+            <select id="screeningJob">
+                <option value="">Choose a job posting</option>
+                {% for job in jobs %}<option value="{{ job.id }}">{{ job.title }}</option>{% endfor %}
+            </select>
+        </div>
+    </section>
+
+    <section class="screening-body">
+        <section class="screening-panel upload-panel">
+            <div class="panel-heading"><h2><i class="uil uil-upload"></i> Upload resume for screening</h2><span>Credentials-first analysis</span></div>
+            <form id="resumeForm" enctype="multipart/form-data">
+                <div class="upload-grid">
+                    <div>
+                        <div class="field"><label for="resumeFile">Resume file</label><input id="resumeFile" name="resume" type="file" accept=".pdf,.txt" required><small>PDF or TXT, text-based resumes work best.</small></div>
+                        <div class="field"><label for="jobDescription">Job description</label><textarea id="jobDescription" name="job_description" placeholder="Describe responsibilities, required skills, nice-to-haves, seniority, and domain context..." required></textarea></div>
+                    </div>
+                    <div>
+                        <div class="control-row"><div class="field"><label for="seniority">Seniority</label><select id="seniority" name="seniority"><option>Not specified</option><option>Entry level</option><option>Mid level</option><option>Senior</option><option>Lead / Principal</option></select></div><div class="field"><label for="atsDestination">ATS handoff</label><select id="atsDestination" name="ats_destination"><option value="none">No ATS connected</option><option value="greenhouse">Greenhouse</option><option value="lever">Lever</option></select></div></div>
+                        <div class="field"><label for="historicalContext">Historical hiring context <span>(optional)</span></label><textarea id="historicalContext" name="historical_context" placeholder="Describe job-relevant patterns from successful past hires, without protected attributes..."></textarea><small>Use outcomes and competencies only. Never add age, gender, photos, or other sensitive attributes.</small></div>
+                    </div>
+                </div>
+                <div class="upload-actions"><div class="privacy-note"><i class="uil uil-shield-check"></i> Initial analysis excludes age, gender, nationality, marital status, and photo references.</div><button class="primary-button" id="analyzeButton" type="submit"><i class="uil uil-brain"></i> Analyze resume</button></div>
+                <div id="uploadResult" class="upload-result"></div>
+            </form>
+        </section>
+        <div class="screening-kpis">
+            <div class="kpi"><div class="kpi-label">Applicants screened</div><div id="applicantCount" class="kpi-value">--</div><div class="kpi-note">Across this role</div></div>
+            <div class="kpi"><div class="kpi-label">Average match score</div><div id="averageScore" class="kpi-value">--</div><div class="kpi-note">Resume + interview fit</div></div>
+            <div class="kpi"><div class="kpi-label">Shortlist candidates</div><div id="shortlistCount" class="kpi-value">--</div><div class="kpi-note">Top three profiles</div></div>
+            <div class="kpi"><div class="kpi-label">Strongest match</div><div id="strongestMatch" class="kpi-value">--</div><div class="kpi-note">Highest total score</div></div>
+        </div>
+
+        <div class="screening-grid">
+            <section class="screening-panel">
+                <div class="panel-heading"><h2>Recommended candidates</h2><span id="candidateSummary">Select a role to begin</span></div>
+                <div class="compare-actions"><span id="compareSelectionHint" class="candidate-meta">Select at least 2 candidates</span><button id="compareButton" class="compare-button" type="button" disabled>Compare Selected</button></div>
+                <div id="candidateList" class="candidate-list"><div class="empty-state">Choose a job posting above to see AI-ranked applicants.</div></div>
+                <div class="evidence"><div class="panel-heading"><h2>Screening evidence</h2><span>Highest-scoring responses</span></div><table class="evidence-table"><thead><tr><th>Question</th><th>Response</th><th>Score</th></tr></thead><tbody id="evidenceBody"><tr><td colspan="3" class="empty-state">Evidence will appear after selecting a role.</td></tr></tbody></table></div>
+            </section>
+            <aside class="screening-panel"><div class="panel-heading"><h2>AI hiring signals</h2><span>Live analysis</span></div><div class="insight-list"><div class="insight"><i class="uil uil-chart-line"></i><div><strong>Rank by evidence</strong><p>Candidate scores combine interview feedback with the role match signal captured during application.</p></div></div><div class="insight"><i class="uil uil-focus-target"></i><div><strong>Review the shortlist first</strong><p>Start with the three highest-scoring profiles, then use their evidence to guide your next conversation.</p></div></div><div class="insight"><i class="uil uil-shield-check"></i><div><strong>Keep decisions human</strong><p>AI scores are decision support. Review the original resume, application, and interview context before acting.</p></div></div></div></aside>
+        </div>
+    </section>
+</main>
+
+<script>
+    const jobSelect = document.getElementById('screeningJob');
+    const candidateList = document.getElementById('candidateList');
+    const evidenceBody = document.getElementById('evidenceBody');
+    const resumeForm = document.getElementById('resumeForm');
+    const uploadResult = document.getElementById('uploadResult');
+    const analyzeButton = document.getElementById('analyzeButton');
+    const initials = name => name.split(' ').map(part => part[0]).join('').slice(0, 2).toUpperCase();
+    const scorePercent = score => Math.min(100, Math.max(0, Number(score || 0) * 10));
+    const compareButton = document.getElementById('compareButton');
+    const compareSelectionHint = document.getElementById('compareSelectionHint');
+
+    function updateCompareState() {
+        const count = candidateList.querySelectorAll('.candidate-select:checked').length;
+        compareButton.disabled = count < 2;
+        compareSelectionHint.textContent = count < 2 ? 'Select at least 2 candidates' : `${count} candidates selected`;
+    }
+
+    compareButton.addEventListener('click', () => {
+        const selected = [...candidateList.querySelectorAll('.candidate-select:checked')].map(input => input.value);
+        if (selected.length < 2 || !jobSelect.value) return;
+        window.location.href = `/recruiter/screening/${jobSelect.value}/compare?${selected.map(id => `application_ids=${encodeURIComponent(id)}`).join('&')}`;
+    });
+
+    resumeForm.addEventListener('submit', async event => {
+        event.preventDefault();
+        analyzeButton.disabled = true;
+        uploadResult.className = 'upload-result';
+        uploadResult.textContent = 'Preparing resume for screening...';
+        uploadResult.style.display = 'block';
+        try {
+            const response = await fetch('/resume-screening/analyze', { method: 'POST', body: new FormData(resumeForm) });
+            const result = await response.json();
+            if (!response.ok) throw new Error(result.error || 'Upload failed.');
+            uploadResult.innerHTML = `<strong>${result.filename}</strong> is ready. ${result.word_count} readable words analyzed. ${result.ats_destination !== 'none' ? `ATS destination noted: ${result.ats_destination}.` : 'No ATS handoff selected.'}<div class="tag-list">${result.matched_terms.map(term => `<span class="tag">${term}</span>`).join('')}</div>`;
+        } catch (error) {
+            uploadResult.className = 'upload-result error';
+            uploadResult.textContent = error.message;
+        } finally { analyzeButton.disabled = false; }
+    });
+
+    jobSelect.addEventListener('change', async () => {
+        if (!jobSelect.value) return;
+        candidateList.innerHTML = '<div class="empty-state">Analyzing applicant evidence...</div>';
+        try {
+            const response = await fetch(`/get_job_data/${jobSelect.value}`);
+            if (!response.ok) throw new Error('Unable to load screening data');
+            const data = await response.json();
+            const candidates = data.allCandidates || [];
+            const ranked = [...candidates].sort((a, b) => Number(b.totalScore || 0) - Number(a.totalScore || 0));
+            const average = ranked.length ? ranked.reduce((sum, candidate) => sum + Number(candidate.totalScore || 0), 0) / ranked.length : 0;
+            document.getElementById('applicantCount').textContent = ranked.length;
+            document.getElementById('averageScore').textContent = ranked.length ? `${average.toFixed(1)}/10` : '--';
+            document.getElementById('shortlistCount').textContent = Math.min(3, ranked.length);
+            document.getElementById('strongestMatch').textContent = ranked.length ? `${Number(ranked[0].totalScore || 0).toFixed(1)}/10` : '--';
+            document.getElementById('candidateSummary').textContent = `${ranked.length} applicant${ranked.length === 1 ? '' : 's'} analyzed`;
+            candidateList.innerHTML = ranked.length ? ranked.map((candidate, index) => `<label class="candidate"><input class="candidate-select" type="checkbox" value="${candidate.app_id || ''}" aria-label="Select ${candidate.name}"><div class="avatar">${initials(candidate.name)}</div><div><div class="candidate-name"><a href="/recruiter/applications/${candidate.app_id}">${candidate.name}</a></div><div class="candidate-meta">${index < 3 ? 'Recommended shortlist' : 'Application reviewed'}</div></div><div class="score-wrap"><div class="score">${Number(candidate.totalScore || 0).toFixed(1)}</div><div class="score-label">out of 10</div><div class="progress"><i style="width:${scorePercent(candidate.totalScore)}%"></i></div></div><div class="status ${index > 2 ? 'review' : ''}">${index < 3 ? 'Shortlist' : 'Review'}</div></label>`).join('') : '<div class="empty-state">No applicants have been scored for this role yet.</div>';
+            candidateList.querySelectorAll('.candidate-select').forEach(input => input.addEventListener('change', updateCompareState));
+            updateCompareState();
+            const evidence = (data.questionsResponses || []).slice(0, 5);
+            evidenceBody.innerHTML = evidence.length ? evidence.map(item => `<tr><td>${item.question || 'Interview response'}</td><td>${item.response || 'No response recorded'}</td><td>${item.score || 0}/10</td></tr>`).join('') : '<tr><td colspan="3" class="empty-state">No interview evidence recorded yet.</td></tr>';
+        } catch (error) {
+            candidateList.innerHTML = '<div class="empty-state">Screening data could not be loaded. Please try again.</div>';
+        }
+    });
+</script>
+{% endblock %}

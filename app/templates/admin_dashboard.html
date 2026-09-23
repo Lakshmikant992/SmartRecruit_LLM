@@ -1,0 +1,143 @@
+{% extends 'base.html' %}
+{% block title %}Admin Dashboard{% endblock %}
+{% block content %}
+<style>
+  .admin-shell { max-width: 1400px; margin: 0 auto; color: var(--text-color); }
+  .admin-header { display:flex; justify-content:space-between; align-items:flex-start; gap:20px; margin-bottom:20px; }
+  .admin-header h1 { margin:0 0 6px; font-size:30px; }
+  .admin-header p { margin:0; color:#6b7280; }
+  .admin-nav { display:flex; flex-wrap:wrap; gap:8px; margin-bottom:20px; }
+  .admin-nav a { text-decoration:none; color:#435066; background:var(--panel-color); border:1px solid #e3e8ee; padding:9px 13px; border-radius:8px; font-weight:700; font-size:13px; }
+  .admin-nav a.active { color:#fff; background:#255f78; border-color:#255f78; }
+  .metric-grid { display:grid; grid-template-columns:repeat(5, minmax(140px, 1fr)); gap:14px; margin-bottom:20px; }
+  .metric-card, .panel { background:var(--panel-color); border:1px solid #e5e9ee; border-radius:10px; padding:18px; box-shadow:0 4px 12px rgba(22,34,48,.05); }
+  .metric-card span { display:block; color:#6b7280; font-size:12px; font-weight:700; text-transform:uppercase; letter-spacing:.04em; }
+  .metric-card strong { display:block; margin-top:10px; font-size:28px; color:#1f4050; }
+  .chart-grid { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-bottom:20px; }
+  .panel h2 { margin:0 0 14px; font-size:18px; }
+  .chart-box { height:250px; position:relative; }
+  .toolbar { display:flex; flex-wrap:wrap; gap:8px; align-items:center; justify-content:space-between; margin-bottom:14px; }
+  .toolbar form { display:flex; gap:8px; flex-wrap:wrap; }
+  input, select, textarea { border:1px solid #d7dfe6; border-radius:7px; padding:9px 10px; font:inherit; background:var(--panel-color); color:var(--text-color); }
+  button, .button { border:0; border-radius:7px; padding:9px 12px; font:inherit; font-weight:700; cursor:pointer; background:#255f78; color:#fff; text-decoration:none; display:inline-block; }
+  button.secondary, .button.secondary { background:#edf1f4; color:#344454; }
+  button.danger { background:#a43d42; }
+  .table-wrap { overflow-x:auto; }
+  table { width:100%; border-collapse:collapse; min-width:720px; }
+  th, td { text-align:left; padding:12px 10px; border-bottom:1px solid #edf0f2; vertical-align:top; font-size:13px; }
+  th { color:#667085; font-size:11px; text-transform:uppercase; letter-spacing:.04em; }
+  .badge { display:inline-block; padding:4px 8px; border-radius:999px; font-size:11px; font-weight:800; background:#edf1f4; color:#45515d; }
+  .badge.good { background:#def4e8; color:#17633c; }.badge.warn { background:#fff0cc; color:#835b00; }.badge.bad { background:#f9dfdf; color:#8f3030; }
+  .row-actions { display:flex; flex-wrap:wrap; gap:5px; }.row-actions form { display:inline; }
+  .empty { padding:26px; text-align:center; color:#788493; border:1px dashed #ccd5dd; border-radius:8px; }
+  .create-form { display:grid; grid-template-columns:repeat(5, 1fr); gap:8px; margin-bottom:18px; }
+  .create-form button { align-self:stretch; }
+  .muted { color:#7a8794; }
+  @media (max-width: 1050px) { .metric-grid { grid-template-columns:repeat(3, 1fr); }.create-form { grid-template-columns:repeat(2, 1fr); } }
+  @media (max-width: 700px) { .metric-grid, .chart-grid { grid-template-columns:1fr; }.create-form { grid-template-columns:1fr; }.admin-header { display:block; } }
+</style>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap');
+  body:has(.admin-shell), body:has(.admin-shell) * { font-family:'Inter','Segoe UI',system-ui,sans-serif; }
+  body:has(.admin-shell) { background:#f9fafb; color:#111827; }
+  body:has(.admin-shell) nav { width:240px; padding:22px 14px; background:#f9fafb; border-right:1px solid #e5e7eb; }
+  body:has(.admin-shell) nav .logo-image img { width:168px; }
+  body:has(.admin-shell) nav .menu-items { margin-top:42px; height:calc(100% - 86px); }
+  body:has(.admin-shell) .menu-items li a { height:44px; margin:3px 0; padding:0 12px; border-radius:10px; transition:background .18s ease,color .18s ease; }
+  body:has(.admin-shell) .menu-items li a:before { display:none; }
+  body:has(.admin-shell) .menu-items li a:hover { background:#eef4ff; }
+  body:has(.admin-shell) .menu-items li a i { min-width:30px; font-size:20px; color:#6b7280; }
+  body:has(.admin-shell) .menu-items li a .link-name { font-size:13px; font-weight:600; color:#6b7280; }
+  body:has(.admin-shell) .nav-links li:first-child a { margin-bottom:15px; }
+  body:has(.admin-shell) .nav-links li:first-child a, body:has(.admin-shell) .nav-links li:first-child a i, body:has(.admin-shell) .nav-links li:first-child a .link-name { color:#6b7280; }
+  body:has(.admin-shell) .nav-links li:nth-child(2) a, body:has(.admin-shell) .nav-links li:nth-child(2) a i, body:has(.admin-shell) .nav-links li:nth-child(2) a .link-name { color:#2563eb; background:#eff6ff; border-left:3px solid #2563eb; }
+  body:has(.admin-shell) .menu-items .logout-mode { border-top:1px solid #e5e7eb; }
+  body:has(.admin-shell) .dashboard { left:240px; width:calc(100% - 240px); padding:0 32px 40px; background:#f9fafb; }
+  body:has(.admin-shell) .dashboard .top { left:240px; width:calc(100% - 240px); height:72px; padding:0 32px; background:#fff; border-bottom:1px solid #e5e7eb; }
+  .admin-topbar-title { font-size:15px; font-weight:600; color:#111827; }
+  .admin-topbar-actions { display:flex; align-items:center; gap:20px; }
+  .admin-topbar-search { display:flex; align-items:center; gap:8px; width:220px; padding:8px 12px; border:1px solid #e5e7eb; border-radius:9px; color:#9ca3af; }
+  .admin-topbar-search input { width:100%; border:0; outline:0; padding:0; background:transparent; color:#111827; font-size:13px; }
+  .admin-notification { position:relative; border:0; padding:0; background:transparent; color:#6b7280; font-size:21px; cursor:pointer; }
+  .admin-notification span { position:absolute; top:-1px; right:-2px; width:6px; height:6px; border-radius:50%; background:#2563eb; }
+  .admin-profile { display:flex; align-items:center; gap:9px; color:#111827; text-decoration:none; }
+  .admin-profile strong, .admin-profile small { display:block; white-space:nowrap; }.admin-profile strong{font-size:12px}.admin-profile small{font-size:11px;color:#9ca3af;margin-top:2px}.admin-profile > i{color:#9ca3af}
+  .admin-profile-avatar, .user-avatar { display:inline-flex; align-items:center; justify-content:center; flex:0 0 auto; border-radius:50%; font-weight:700; }
+  .admin-profile-avatar { width:34px; height:34px; background:#dbeafe; color:#1d4ed8; font-size:12px; }
+  body:has(.admin-shell) .dash-content { padding-top:104px; }
+  .admin-shell { max-width:none; color:#111827; }
+  .admin-header { margin-bottom:28px; }.admin-header h1{font-size:26px;font-weight:600;letter-spacing:-.02em}.admin-header p{font-size:14px;color:#6b7280}
+  .admin-nav { display:flex; gap:22px; margin:0 0 24px; border-bottom:1px solid #e5e7eb; }
+  .admin-nav a { position:relative; border:0; border-radius:0; padding:0 0 13px; background:transparent; color:#6b7280; font-size:13px; font-weight:600; }
+  .admin-nav a:hover { color:#2563eb; background:transparent; }.admin-nav a.active{color:#2563eb;background:transparent;border:0}.admin-nav a.active:after{content:'';position:absolute;left:0;right:0;bottom:-1px;height:2px;background:#2563eb;border-radius:2px}
+  .metric-grid { grid-template-columns:repeat(5,minmax(0,1fr)); gap:16px; margin-bottom:24px; }.metric-card,.panel{border:1px solid #e5e7eb;border-radius:12px;background:#fff;box-shadow:0 1px 2px rgba(16,24,40,.04);padding:20px}.metric-card span{font-size:11px;letter-spacing:.08em;color:#9ca3af}.metric-card strong{font-size:25px;color:#111827;font-weight:600;margin-top:12px}
+  .chart-grid{gap:16px;margin-bottom:24px}.panel h2{font-size:18px;font-weight:600;color:#111827;margin-bottom:18px}.chart-box{height:240px}
+  .toolbar{margin-bottom:16px}.toolbar form{width:100%;justify-content:space-between}.toolbar form:before{content:'Users';font-size:18px;font-weight:600;color:#111827;align-self:center}.toolbar input{margin-left:auto}
+  input,select,textarea{border:1px solid #e5e7eb;border-radius:8px;padding:10px 12px;background:#fff;color:#111827;font-size:13px;outline:0}input:focus,select:focus,textarea:focus{border-color:#93c5fd;box-shadow:0 0 0 3px #dbeafe}
+  button,.button{border-radius:8px;background:#2563eb;padding:9px 13px;font-size:13px;font-weight:600}.button.secondary,button.secondary{background:#fff;border:1px solid #e5e7eb;color:#4b5563}.button.secondary:hover,button.secondary:hover{background:#f9fafb}.button.danger,button.danger{background:#fff;border:1px solid #fecaca;color:#b91c1c}
+  table{border-collapse:separate;border-spacing:0 8px;min-width:760px}.table-wrap{overflow-x:auto}th{background:transparent;border:0;color:#9ca3af;font-size:11px;letter-spacing:.09em;padding:0 16px 4px}td{background:#fff;border-top:1px solid #e5e7eb;border-bottom:1px solid #e5e7eb;padding:16px;font-size:13px;color:#374151}td:first-child{position:relative;border-left:1px solid #e5e7eb;border-radius:12px 0 0 12px;padding-left:62px}tbody td:first-child:before{content:'U';position:absolute;left:16px;top:14px;display:flex;align-items:center;justify-content:center;width:34px;height:34px;border-radius:50%;background:#dcfce7;color:#15803d;font-size:12px;font-weight:700}.table-wrap tr:hover td{background:#f9fafb}.user-cell{display:flex;align-items:center;gap:11px}.user-avatar{width:36px;height:36px;background:#dcfce7;color:#15803d;font-size:12px}.user-avatar.recruiter{background:#dbeafe;color:#1d4ed8}.user-cell strong{font-size:13px;color:#111827}.muted{font-size:13px;color:#6b7280}.badge{padding:5px 9px;font-size:11px;font-weight:600}.badge.good{background:#ecfdf3;color:#15803d}.badge.warn{background:#fffbeb;color:#a16207}.badge.bad{background:#fef2f2;color:#b91c1c}.row-actions{justify-content:flex-end;align-items:center}.row-actions button,.row-actions .button{font-size:12px;padding:7px 9px}.empty{background:#fff;border:1px dashed #d1d5db;border-radius:12px;padding:36px;color:#6b7280}
+  .create-form{grid-template-columns:repeat(5,1fr);gap:10px;padding:16px;background:#f9fafb;border:1px solid #f0f1f3;border-radius:10px}.create-form button{align-self:stretch}
+  @media(max-width:1100px){.metric-grid{grid-template-columns:repeat(3,1fr)}.create-form{grid-template-columns:repeat(2,1fr)}}
+  @media(max-width:720px){body:has(.admin-shell) nav{width:70px;padding:22px 10px}body:has(.admin-shell) nav .logo-image img{width:45px}body:has(.admin-shell) nav .link-name{display:none}body:has(.admin-shell) .dashboard{left:70px;width:calc(100% - 70px);padding:0 16px 28px}body:has(.admin-shell) .dashboard .top{left:70px;width:calc(100% - 70px);padding:0 16px}.admin-topbar-search{display:none}.admin-profile strong,.admin-profile small,.admin-profile>i{display:none}.admin-nav{gap:14px;overflow-x:auto}.metric-grid,.chart-grid{grid-template-columns:1fr}.create-form{grid-template-columns:1fr}.admin-header h1{font-size:24px}}
+</style>
+<div class="admin-shell">
+  <header class="admin-header">
+    <div><h1>Admin control center</h1><p>Monitor recruitment activity and keep access, users, jobs, and interviews aligned.</p></div>
+    <div class="muted">{{ user.first_name }} {{ user.last_name }} · Administrator</div>
+  </header>
+  <nav class="admin-nav" aria-label="Admin sections">
+    {% for key, label in [('overview','Dashboard'),('users','Recruiters & Candidates'),('jobs','Jobs'),('interviews','Interviews'),('reports','Reports'),('settings','Settings')] %}
+      <a class="{{ 'active' if section == key else '' }}" href="{{ url_for('main.admin_dashboard', section=key) }}">{{ label }}</a>
+    {% endfor %}
+  </nav>
+
+  {% if section == 'overview' or section == 'reports' %}
+  <section class="metric-grid">
+    <div class="metric-card"><span>Total candidates</span><strong>{{ total_candidates }}</strong></div>
+    <div class="metric-card"><span>Total recruiters</span><strong>{{ total_recruiters }}</strong></div>
+    <div class="metric-card"><span>Active jobs</span><strong>{{ active_jobs }}</strong></div>
+    <div class="metric-card"><span>Completed today</span><strong>{{ completed_today }}</strong></div>
+    <div class="metric-card"><span>Pending access</span><strong>{{ pending_access }}</strong></div>
+  </section>
+  <section class="chart-grid">
+    <div class="panel"><h2>Hiring pipeline</h2><div class="chart-box"><canvas id="pipelineChart"></canvas></div></div>
+    <div class="panel"><h2>Completion and screening rates</h2><div class="chart-box"><canvas id="rateChart"></canvas></div></div>
+  </section>
+  {% endif %}
+
+  {% if section == 'overview' %}
+  <section class="panel"><h2>Admin actions</h2><p class="muted">Use the sections above to manage users, close jobs, review AI interview reports, or reset candidate access. Changes are written to the same records used by recruiter and candidate dashboards.</p></section>
+  {% elif section == 'users' %}
+  <section class="panel">
+    <h2>User management</h2>
+    <form class="create-form" method="post" action="{{ url_for('main.admin_save_user') }}">
+      <input type="hidden" name="user_id" value="{{ edit_user.id if edit_user else '' }}"><input name="first_name" placeholder="First name" value="{{ edit_user.first_name if edit_user else '' }}" required><input name="last_name" placeholder="Last name" value="{{ edit_user.last_name if edit_user else '' }}" required><input name="email" type="email" placeholder="Email" value="{{ edit_user.email if edit_user else '' }}" required><input name="phone_number" placeholder="Phone" value="{{ edit_user.phone_number if edit_user else '' }}" required><input name="birthday" type="date" value="{{ edit_user.birthday if edit_user else '' }}" required>
+      <input name="company_name" placeholder="Company or school" value="{{ edit_user.company_name if edit_user else '' }}"><select name="role"><option value="student" {{ 'selected' if edit_user and edit_user.role == 'student' else '' }}>Candidate</option><option value="recruiter" {{ 'selected' if edit_user and edit_user.role == 'recruiter' else '' }}>Recruiter</option><option value="admin" {{ 'selected' if edit_user and edit_user.role == 'admin' else '' }}>Admin</option></select><input name="password" placeholder="{{ 'Leave blank to keep password' if edit_user else 'Temporary password' }}" {{ '' if edit_user else 'required' }}><button type="submit">{{ 'Save user' if edit_user else 'Create user' }}</button>
+    </form>
+    <div class="toolbar"><form method="get"><input type="hidden" name="section" value="users"><input name="search" value="{{ search }}" placeholder="Search name or email"><select name="user_type"><option value="all" {{ 'selected' if user_type == 'all' else '' }}>All roles</option><option value="student" {{ 'selected' if user_type == 'student' else '' }}>Candidates</option><option value="recruiter" {{ 'selected' if user_type == 'recruiter' else '' }}>Recruiters</option></select><button type="submit">Filter</button></form></div>
+    {% if users %}<div class="table-wrap"><table><thead><tr><th>User</th><th>Role</th><th>Status</th><th>Joined</th><th>Actions</th></tr></thead><tbody>
+      {% for item in users %}<tr><td><strong>{{ item.first_name }} {{ item.last_name }}</strong><br><span class="muted">{{ item.email }}</span></td><td><form method="post" action="{{ url_for('main.admin_update_role', user_id=item.id) }}"><select name="role" onchange="this.form.submit()"><option value="student" {{ 'selected' if item.role == 'student' else '' }}>Candidate</option><option value="recruiter" {{ 'selected' if item.role == 'recruiter' else '' }}>Recruiter</option><option value="admin" {{ 'selected' if item.role == 'admin' else '' }}>Admin</option></select></form></td><td><span class="badge {{ 'good' if item.is_active else 'bad' }}">{{ 'Active' if item.is_active else 'Deactivated' }}</span></td><td>{{ item.created_at.strftime('%b %d, %Y') if item.created_at else 'N/A' }}</td><td><div class="row-actions"><a class="button secondary" href="{{ url_for('main.admin_dashboard', section='users', edit_user_id=item.id) }}">Edit</a><form method="post" action="{{ url_for('main.admin_toggle_user', user_id=item.id) }}" onsubmit="return confirm('Change this account status?');"><button class="secondary" type="submit">{{ 'Deactivate' if item.is_active else 'Activate' }}</button></form>{% if item.id != user.id %}<form method="post" action="{{ url_for('main.admin_delete_user', user_id=item.id) }}" onsubmit="return confirm('Delete this user and directly owned records? This cannot be undone.');"><button class="danger" type="submit">Delete</button></form>{% endif %}</div></td></tr>{% endfor %}
+    </tbody></table></div>{% else %}<div class="empty">No users match this filter.</div>{% endif %}
+  </section>
+  {% elif section == 'jobs' %}
+  <section class="panel"><h2>Jobs oversight</h2>{% if jobs %}<div class="table-wrap"><table><thead><tr><th>Job</th><th>Recruiter</th><th>Applicants</th><th>Screening pass</th><th>Status</th><th>Actions</th></tr></thead><tbody>{% for job in jobs %}<tr><td><strong>{{ job.title }}</strong><br><span class="muted">{{ job.location }}</span></td><td>{{ job.recruiter.first_name }} {{ job.recruiter.last_name }}</td><td>{{ job.applications|length }}</td><td>{{ ((job.applications|selectattr('ai_score','gt',0)|list|length / (job.applications|length or 1)) * 100)|round|int }}%</td><td><span class="badge {{ 'good' if job.is_open else 'bad' }}">{{ 'Open' if job.is_open else 'Closed' }}</span></td><td><div class="row-actions"><form method="post" action="{{ url_for('main.admin_job_action', job_id=job.id) }}" onsubmit="return confirm('Change this job status?');"><input type="hidden" name="action" value="toggle"><button class="secondary" type="submit">{{ 'Close' if job.is_open else 'Reopen' }}</button></form><form method="post" action="{{ url_for('main.admin_job_action', job_id=job.id) }}" onsubmit="return confirm('Delete this job and its applications?');"><input type="hidden" name="action" value="delete"><button class="danger" type="submit">Delete</button></form></div></td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty">No jobs have been posted.</div>{% endif %}</section>
+  {% elif section == 'interviews' %}
+  <section class="panel"><h2>AI interview oversight</h2>{% if interviews %}<div class="table-wrap"><table><thead><tr><th>Candidate</th><th>Job / Recruiter</th><th>Status</th><th>Score</th><th>Date</th><th>Access and assignment</th></tr></thead><tbody>{% for interview in interviews %}<tr><td><strong>{{ interview.application.user.first_name }} {{ interview.application.user.last_name }}</strong><br><span class="muted">{{ interview.application.user.email }}</span></td><td>{{ interview.application.job.title }}<br><span class="muted">{{ interview.application.job.recruiter.first_name }} {{ interview.application.job.recruiter.last_name }}</span></td><td><span class="badge {{ 'good' if interview.status == 'Completed' else 'warn' }}">{{ interview.status }}</span></td><td>{{ interview.overall_score if interview.overall_score is not none else '—' }}/10</td><td>{{ (interview.completed_at or interview.created_at).strftime('%b %d, %Y') }}</td><td><div class="row-actions"><form method="post" action="{{ url_for('main.admin_application_access', application_id=interview.application.id) }}"><select name="action"><option value="pending">Pending</option><option value="granted">Grant</option><option value="completed">Completed</option><option value="reset">Reset</option></select><button type="submit">Apply</button></form><form method="post" action="{{ url_for('main.admin_reassign_application', application_id=interview.application.id) }}"><select name="job_id">{% for job in jobs %}<option value="{{ job.id }}" {{ 'selected' if job.id == interview.application.job_id else '' }}>{{ job.title }}</option>{% endfor %}</select><select name="recruiter_id">{% for recruiter in recruiters %}<option value="{{ recruiter.id }}" {{ 'selected' if recruiter.id == interview.interviewer_id else '' }}>{{ recruiter.first_name }} {{ recruiter.last_name }}</option>{% endfor %}</select><button class="secondary" type="submit">Reassign</button></form></div></td></tr>{% endfor %}</tbody></table></div>{% else %}<div class="empty">No interviews are available.</div>{% endif %}</section>
+  {% elif section == 'settings' %}
+  <section class="panel"><h2>Admin settings</h2><p class="muted">Account and permission changes are managed through the user management controls. Shared recruiter and candidate dashboards read these same database records on refresh.</p></section>
+  {% endif %}
+</div>
+{% if section == 'overview' or section == 'reports' %}<script src="https://cdn.jsdelivr.net/npm/chart.js"></script><script>
+const pipeline = {{ pipeline|tojson }};
+new Chart(document.getElementById('pipelineChart'), {type:'bar', data:{labels:['Applications','Screened','Completed interviews'],datasets:[{label:'Candidates',data:[pipeline.applications,pipeline.screened,pipeline.interviews],backgroundColor:['#255f78','#5a8f72','#d18b42']}]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true}}}});
+const screenedRate = pipeline.applications ? Math.round(pipeline.screened / pipeline.applications * 100) : 0;
+const completionRate = pipeline.applications ? Math.round(pipeline.interviews / pipeline.applications * 100) : 0;
+new Chart(document.getElementById('rateChart'), {type:'line', data:{labels:['Screening pass rate','Interview completion rate'],datasets:[{label:'Rate',data:[screenedRate,completionRate],borderColor:'#255f78',backgroundColor:'rgba(37,95,120,.12)',fill:true,tension:.25}]},options:{responsive:true,maintainAspectRatio:false,scales:{y:{beginAtZero:true,max:100,ticks:{callback:value => value+'%'}}}}});
+</script>{% endif %}
+<script>
+document.querySelectorAll('.admin-shell form').forEach(form => form.addEventListener('submit', () => {
+  const submit = form.querySelector('button[type="submit"]');
+  if (submit) { submit.disabled = true; submit.textContent = 'Working...'; }
+}));
+</script>
+{% endblock %}

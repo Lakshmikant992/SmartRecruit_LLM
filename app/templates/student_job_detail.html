@@ -1,0 +1,34 @@
+{% extends 'base.html' %}
+
+{% block title %}Job Details{% endblock %}
+
+{% block content %}
+<style>
+  .detail-wrap { max-width: 920px; margin: 24px auto; background: var(--panel-color); border-radius: 16px; padding: 26px; box-shadow: 0 12px 28px rgba(0,0,0,.06); }
+  .meta { display: flex; flex-wrap: wrap; gap: 12px; margin: 14px 0; }
+  .tag { background:#fff3cc; color:#7a5200; border-radius:999px; padding:6px 10px; font-weight:600; font-size:12px; }
+  .desc { white-space: pre-wrap; line-height: 1.7; color: var(--text-color); }
+  .actions { margin-top: 26px; display: flex; gap: 12px; flex-wrap: wrap; }
+  .primary { background:#ffb703; color:#fff; padding: 10px 16px; border-radius:8px; text-decoration:none; }
+  .secondary { background:#e9ecef; color:#1d1d1d; padding: 10px 16px; border-radius:8px; text-decoration:none; }
+</style>
+
+<div class="detail-wrap">
+  <h1>{{ job.title }}</h1>
+  <div class="meta">
+    <span class="tag">{{ job.job_type or 'Full-time' }}</span>
+    <span class="tag">{{ job.job_role or 'General' }}</span>
+    <span class="tag">{{ job.location }}</span>
+    <span class="tag">{{ job.experience }}</span>
+  </div>
+  <p><strong>Salary:</strong> {{ job.salary }}</p>
+  <p><strong>Posted:</strong> {{ job.date_posted.strftime('%b %d, %Y') if job.date_posted else 'Recently' }}</p>
+
+  <div class="desc">{{ job.description }}</div>
+
+  <div class="actions">
+    <a class="primary" href="{{ url_for('main.student_apply', job_id=job.id) }}">Apply Now</a>
+    <a class="secondary" href="{{ url_for('main.student_jobs') }}">Back to Jobs</a>
+  </div>
+</div>
+{% endblock %}

@@ -7,14 +7,6 @@ This system is built using **Flask**, **SQLAlchemy**, **MongoDB**, and **Hugging
 
 ---
 
-## **Video Walkthrough**
-
-[Click here to watch the video walkthrough](https://drive.google.com/file/d/103M12Ok-hC81KZHVV7FvGC586wEa_KKX/view?usp=sharing)
-
-> *(This video explains how the application works)*
-
----
-
 ## **Features**
 
 ### **For Job Providers**
@@ -42,9 +34,9 @@ To set up the RucRut application locally, follow these steps:
 - **SQLAlchemy 2.0.8**
 
 ### **Steps**
-1. **Clone the repository**:
+1. **Obtain the repository**:
    ```bash
-   git clone https://github.com/OmarNouih/SmartRecruit_LLM.git
+   git clone <repository-url>
    cd RucRut
    ```
 
@@ -113,9 +105,4 @@ This project is licensed under the **3DSF License**.
 
 ---
 
-## **Contact**
-
-For any inquiries, you can reach out to the developers:
-
-- **Omar NOUIH** - [Email](omarnouih@gmail.com)
-- **Salma SAHL** - [Email](sahlsalma56@gmail.com)
+## 

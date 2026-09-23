@@ -18,9 +18,30 @@
             <textarea id="job-description" name="description" placeholder="Enter job description" required></textarea>
         </div>
         <div class="form-group">
+            <label for="job-role">Role</label>
+            <input type="text" id="job-role" name="job_role" placeholder="e.g. Software Engineering" required>
+        </div>
+        <div class="form-group">
+            <label for="job-type">Job Type</label>
+            <select id="job-type" name="job_type" required><option>Full-time</option><option>Part-time</option><option>Contract</option><option>Internship</option></select>
+        </div>
+        <div class="form-group">
             <label for="job-location">Location</label>
             <select id="job-location" name="location" required>
                 <option value="" disabled selected>Select job location</option>
+                <option value="Remote">Remote</option>
+                <option value="New York, NY">New York, NY</option>
+                <option value="London, UK">London, UK</option>
+                <option value="Toronto, Canada">Toronto, Canada</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="job-experience">Experience Level</label>
+            <select id="job-experience" name="experience" required>
+                <option value="Entry level" selected>Entry level</option>
+                <option value="Mid level">Mid level</option>
+                <option value="Senior">Senior</option>
+                <option value="Lead / Principal">Lead / Principal</option>
             </select>
         </div>
         <div class="form-group">
@@ -31,24 +52,4 @@
     </form>
 </div>
 
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const locationSelect = document.getElementById('job-location');
-
-        fetch('https://restcountries.com/v3.1/all')
-            .then(response => response.json())
-            .then(data => {
-                // Sort countries alphabetically
-                data.sort((a, b) => a.name.common.localeCompare(b.name.common));
-
-                data.forEach(country => {
-                    const option = document.createElement('option');
-                    option.value = country.name.common;
-                    option.textContent = country.name.common;
-                    locationSelect.appendChild(option);
-                });
-            })
-            .catch(error => console.error('Error fetching country data:', error));
-    });
-</script>
 {% endblock %}

@@ -1,0 +1,351 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><title>RucRut Project Report Chapters 1-3</title>
+<style>
+@page { size: A4; margin: 22mm 18mm 20mm; }
+body { font-family: Georgia, 'Times New Roman', serif; color:#202124; line-height:1.55; font-size:11pt; }
+h1 { color:#a85d00; font-size:24pt; text-align:center; margin:22pt 0 12pt; page-break-before:always; }
+h1:first-child { page-break-before:auto; margin-top:80pt; }
+h2 { color:#a85d00; font-size:17pt; margin-top:20pt; border-bottom:1px solid #e1b36b; padding-bottom:4pt; }
+h3 { color:#754400; font-size:13pt; margin-top:15pt; }
+p { text-align:justify; }
+table { width:100%; border-collapse:collapse; margin:12pt 0; font-size:9.5pt; page-break-inside:avoid; }
+th { background:#fff1d6; color:#603900; }
+th,td { border:1px solid #b8b8b8; padding:6pt; vertical-align:top; }
+li { margin:4pt 0; }
+strong { color:#603900; }
+hr { border:0; border-top:1px solid #d0d0d0; margin:20pt 0; }
+code { font-family:Consolas, monospace; font-size:9pt; }
+</style></head><body><h1>RucRut: AI-Powered Recruitment &amp; Resume Screening Portal</h1>
+<h2>Project Report</h2>
+<p><strong>Submitted by:</strong> [Student Name, Roll No.]<br />
+<strong>Under the guidance of:</strong> [Guide Name]<br />
+<strong>Institution:</strong> [Institution Name]<br />
+<strong>Academic Year:</strong> [Year]</p>
+<hr />
+<h1>Chapter 1: Preliminary Material</h1>
+<h2>1.1 Title Page</h2>
+<p><strong>Project Title:</strong> RucRut: AI-Powered Recruitment &amp; Resume Screening Portal<br />
+<strong>Project Type:</strong> Web-based recruitment management and AI-assisted screening system<br />
+<strong>Technology Domain:</strong> Python web development, relational data management, natural language processing, and artificial intelligence<br />
+<strong>Submitted by:</strong> [Student Name, Roll No.]<br />
+<strong>Guide:</strong> [Guide Name]<br />
+<strong>Institution:</strong> [Institution Name]<br />
+<strong>Year:</strong> [Year]</p>
+<h2>1.2 Certificate</h2>
+<p>This is to certify that the project report entitled <strong>“RucRut: AI-Powered Recruitment &amp; Resume Screening Portal”</strong> has been prepared and submitted by <strong>[Student Name, Roll No.]</strong> under the guidance of <strong>[Guide Name]</strong> in partial fulfilment of the academic requirements of <strong>[Programme or Course Name]</strong> at <strong>[Institution Name]</strong> during <strong>[Year]</strong>.</p>
+<p>The work presented in this report is considered suitable for academic evaluation.</p>
+<p><strong>Guide Signature:</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em>_<br />
+<strong>Head of Department Signature:</strong> </strong><strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_<br />
+<strong>Date:</strong> </em></strong><strong><em>_</em></strong><strong><em>_</em></strong>___</p>
+<h2>1.3 Declaration</h2>
+<p>I/We declare that the project entitled <strong>“RucRut: AI-Powered Recruitment &amp; Resume Screening Portal”</strong> is the original work carried out by <strong>[Student Name, Roll No.]</strong> under the supervision of <strong>[Guide Name]</strong>. The work has not been submitted previously, in whole or in part, for the award of any other academic qualification. All external sources, libraries, frameworks, and research materials used in the project have been acknowledged.</p>
+<p><strong>Student Signature:</strong> <strong><em>_</em></strong><strong><em>_</em></strong><strong><em>_</em>_<br />
+<strong>Name:</strong> [Student Name]<br />
+<strong>Date:</strong> </strong><strong><em>_</em></strong><strong><em>_</em></strong>____</p>
+<h2>1.4 Acknowledgement</h2>
+<p>The successful completion of this project was supported by the guidance and technical assistance of several individuals. The author expresses sincere gratitude to <strong>[Guide Name]</strong> for providing direction, review, and constructive feedback throughout the project. Appreciation is also extended to the faculty and staff of <strong>[Institution Name]</strong> for providing the academic environment and facilities required for development and evaluation.</p>
+<p>The author further acknowledges the open-source communities behind Flask, SQLAlchemy, MongoDB, Hugging Face, Sentence Transformers, PDFPlumber, HTML, CSS, and JavaScript. These technologies provided the foundation for implementing the portal, persistence layer, document processing functions, and AI-assisted recruitment workflows.</p>
+<h2>1.5 Abstract</h2>
+<p>RucRut is a web-based recruitment portal designed to coordinate the interaction between administrators, recruiters, and student or candidate users through a single role-aware login system. The portal supports job creation, job discovery, candidate applications, resume upload, AI-assisted resume screening, interview-question generation, interview response evaluation, and application-status tracking.</p>
+<p>The backend is implemented using Python and Flask. SQLAlchemy provides access to the relational database used for users, jobs, applications, interviews, and related records. MongoDB is used for selected application and evaluation documents. The frontend uses HTML, CSS, JavaScript, Jinja templates, and responsive layouts. Resume text is extracted using PDFPlumber and related document-processing utilities. Natural-language processing and transformer-based models are used to compare resume content with job descriptions and to support interview question generation and feedback.</p>
+<p>The proposed system addresses the delay, inconsistency, and administrative effort associated with manual recruitment workflows. It centralises recruitment activities while retaining role-based access boundaries. AI output is used as decision support for screening and interview evaluation; final recruitment decisions remain under recruiter or administrator control.</p>
+<p><strong>Keywords:</strong> recruitment portal, resume screening, natural language processing, Flask, SQLAlchemy, candidate tracking, AI interview, role-based access.</p>
+<h2>1.6 Table of Contents</h2>
+<ol>
+<li>Preliminary Material  </li>
+<li>Introduction  </li>
+<li>Literature Review / Existing System  </li>
+</ol>
+<p><em>Chapters 4–12 will be added after confirmation to continue.</em></p>
+<h2>1.7 List of Figures</h2>
+<table>
+<thead>
+<tr>
+<th>Figure No.</th>
+<th>Figure Title</th>
+<th style="text-align: right;">Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Fig. 1.1</td>
+<td>RucRut role-based recruitment workflow</td>
+<td style="text-align: right;">To be assigned</td>
+</tr>
+<tr>
+<td>Fig. 2.1</td>
+<td>Recruitment problem context</td>
+<td style="text-align: right;">To be assigned</td>
+</tr>
+<tr>
+<td>Fig. 3.1</td>
+<td>Existing and proposed recruitment workflow comparison</td>
+<td style="text-align: right;">To be assigned</td>
+</tr>
+</tbody>
+</table>
+<h2>1.8 List of Tables</h2>
+<table>
+<thead>
+<tr>
+<th>Table No.</th>
+<th>Table Title</th>
+<th style="text-align: right;">Page</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Table 1.1</td>
+<td>Project technology summary</td>
+<td style="text-align: right;">To be assigned</td>
+</tr>
+<tr>
+<td>Table 2.1</td>
+<td>Project objectives</td>
+<td style="text-align: right;">To be assigned</td>
+</tr>
+<tr>
+<td>Table 3.1</td>
+<td>Existing system versus proposed system</td>
+<td style="text-align: right;">To be assigned</td>
+</tr>
+</tbody>
+</table>
+<h3>Chapter 1 Summary</h3>
+<p>This chapter identifies the project, its academic submission context, the technical domain, and the purpose of the report. It also introduces RucRut as an AI-assisted recruitment portal that combines role-based workflows, resume analysis, job applications, and interview support.</p>
+<hr />
+<h1>Chapter 2: Introduction</h1>
+<h2>2.1 Background</h2>
+<p>Recruitment requires coordination between organisations seeking candidates and individuals seeking employment or internships. Traditional recruitment frequently depends on manual resume review, separate communication channels, spreadsheet-based tracking, and unstructured interview evaluation. These practices become inefficient when the number of applications increases. They can also make it difficult to apply consistent screening criteria, retrieve historical application information, and provide candidates with timely status updates.</p>
+<p>RucRut was developed as a unified recruitment portal to address these operational issues. The system provides a common application with role-aware access for administrators, recruiters, and student or candidate users. Recruiters can create and manage job postings, review applications, compare candidate resumes, and manage interview workflows. Candidates can explore job postings, submit applications, upload resumes, participate in AI-assisted interviews, and view application status. Administrators can oversee users, jobs, applications, and interview records.</p>
+<p>The platform applies artificial intelligence as an assistive layer. Resume text is extracted from uploaded documents and compared with job descriptions to produce a screening or match score. Interview questions can be generated from the job requirements and candidate information. Interview responses can be evaluated to provide structured feedback. These outputs support human review rather than replacing recruiter judgement.</p>
+<h3>Table 2.1: Project Technology Summary</h3>
+<table>
+<thead>
+<tr>
+<th>Layer</th>
+<th>Technologies used in the project</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Backend</td>
+<td>Python, Flask, Flask-Migrate, Flask-Session</td>
+</tr>
+<tr>
+<td>Data access</td>
+<td>SQLAlchemy and Flask-SQLAlchemy</td>
+</tr>
+<tr>
+<td>Relational persistence</td>
+<td>SQLite or another SQLAlchemy-supported SQL database</td>
+</tr>
+<tr>
+<td>Document persistence</td>
+<td>MongoDB through PyMongo for selected application and evaluation records</td>
+</tr>
+<tr>
+<td>Frontend</td>
+<td>HTML5, CSS3, JavaScript, Jinja templates</td>
+</tr>
+<tr>
+<td>AI/NLP</td>
+<td>Hugging Face components, Transformers, Sentence Transformers, similarity-based screening utilities</td>
+</tr>
+<tr>
+<td>Resume processing</td>
+<td>PDFPlumber and document extraction utilities</td>
+</tr>
+<tr>
+<td>Deployment support</td>
+<td>Gunicorn configuration and environment-based Flask configuration</td>
+</tr>
+</tbody>
+</table>
+<h2>2.2 Problem Statement</h2>
+<p>Recruiters and candidates require a reliable platform that can reduce repetitive recruitment administration while maintaining transparent access control and traceable application records. In a manual or fragmented process, recruiters may spend significant time reviewing resumes, candidates may lack visibility into application progress, and interview assessments may be inconsistent. Separate systems for job posting, application collection, screening, and interviews further increase operational complexity.</p>
+<p>The problem addressed by RucRut is therefore defined as follows:</p>
+<blockquote>
+<p>To design and implement a unified, role-based recruitment portal that supports job management, candidate applications, resume screening, AI-assisted interviews, and application tracking while improving workflow consistency and reducing manual effort.</p>
+</blockquote>
+<h2>2.3 Objectives</h2>
+<p>The primary objectives of the project are:</p>
+<ol>
+<li>To provide a single login entry point with role-based access for administrators, recruiters, and candidates.</li>
+<li>To enable recruiters to create, edit, publish, and manage job postings.</li>
+<li>To allow candidates to search available jobs, view job details, submit applications, and track status.</li>
+<li>To extract and process resume content from supported document formats.</li>
+<li>To calculate an AI-assisted match or screening score from candidate resume content and job requirements.</li>
+<li>To generate interview questions using candidate and job information.</li>
+<li>To support interview response evaluation and feedback for recruiter review.</li>
+<li>To provide administrators with oversight of users, jobs, applications, interviews, and access permissions.</li>
+<li>To maintain application and interview records in structured SQL and document-oriented storage.</li>
+<li>To provide a responsive and accessible web interface across desktop, tablet, and mobile devices.</li>
+</ol>
+<h2>2.4 Scope of the Project</h2>
+<h3>2.4.1 Functional Scope</h3>
+<p>The functional scope includes:</p>
+<ul>
+<li>User registration and sign-in through a common authentication interface.</li>
+<li>Role-aware navigation and access control.</li>
+<li>Administrator management of users, jobs, applications, and interviews.</li>
+<li>Recruiter job creation, editing, closure, application review, candidate comparison, screening, and interview scheduling.</li>
+<li>Candidate job exploration, filtering, resume submission, application creation, status tracking, profile management, and interview participation.</li>
+<li>Resume parsing and AI-assisted similarity or match scoring.</li>
+<li>AI-generated interview questions and response feedback.</li>
+<li>Storage of application status history, recruiter notes, interview information, and evaluation results.</li>
+</ul>
+<h3>2.4.2 Technical Scope</h3>
+<p>The system is implemented as a Flask web application using server-rendered Jinja templates and client-side JavaScript. SQLAlchemy models represent core relational entities such as <code>User</code>, <code>Job</code>, <code>Application</code>, <code>Interview</code>, <code>InterviewFeedback</code>, and <code>InterviewQuestionSet</code>. MongoDB is used for selected flexible application and interview evaluation documents. The application also includes environment-based configuration, session handling, file uploads, resume extraction, and database schema compatibility checks.</p>
+<h3>2.4.3 Exclusions</h3>
+<p>The project does not claim to replace human recruitment decisions. It does not guarantee that AI screening scores are free from bias or error. Production-grade identity verification, payroll integration, enterprise single sign-on, large-scale distributed deployment, and legally certified automated hiring decisions are outside the current scope.</p>
+<h2>2.5 Motivation</h2>
+<p>The motivation for RucRut is the need for a practical recruitment workflow that is accessible to smaller organisations, educational placement cells, and early-career candidates. A unified portal can reduce duplicate data entry, make application progress visible, and provide recruiters with structured evidence before an interview. AI-assisted processing can reduce repetitive document comparison and help prioritise recruiter attention, provided that results remain explainable and subject to human review.</p>
+<h2>2.6 Intended Users</h2>
+<table>
+<thead>
+<tr>
+<th>User role</th>
+<th>Primary responsibilities in RucRut</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Administrator</td>
+<td>Manage platform users, jobs, application access, and interview oversight</td>
+</tr>
+<tr>
+<td>Recruiter</td>
+<td>Create jobs, inspect candidate applications, screen resumes, schedule interviews, and update statuses</td>
+</tr>
+<tr>
+<td>Student/Candidate</td>
+<td>Maintain a profile, upload a resume, explore jobs, apply, attend interviews, and track outcomes</td>
+</tr>
+</tbody>
+</table>
+<h3>Chapter 2 Summary</h3>
+<p>RucRut addresses the operational gap between manual recruitment processes and the need for a unified, traceable, AI-assisted workflow. Its objectives cover the complete interaction from job creation and candidate application to resume screening, interview support, and status tracking. The scope is intentionally limited to decision support and workflow management, with final recruitment authority retained by human users.</p>
+<hr />
+<h1>Chapter 3: Literature Review / Existing System</h1>
+<h2>3.1 Manual Recruitment and Resume Screening</h2>
+<p>In a conventional recruitment process, job descriptions are distributed through one or more channels and resumes are collected through email, forms, or separate recruitment systems. Recruiters manually inspect documents and compare candidate qualifications with job requirements. Interview notes and decisions may be recorded in spreadsheets or informal communication tools. This process can be effective for a small number of candidates but becomes difficult to scale when application volume increases.</p>
+<p>Manual screening is also dependent on the reviewer’s time, interpretation, and consistency. Two reviewers may assign different priorities to the same resume. Important information may be overlooked when documents use different formats or terminology. Candidates may not receive a consistent view of application progress, and recruiters may have difficulty reconstructing the history of a decision.</p>
+<h2>3.2 Limitations of the Existing System</h2>
+<p>The limitations of a fragmented or manual recruitment system include:</p>
+<ol>
+<li><strong>High screening effort:</strong> Recruiters must read and compare a large number of resumes manually.</li>
+<li><strong>Inconsistent evaluation:</strong> Screening and interview assessment may vary between reviewers.</li>
+<li><strong>Limited traceability:</strong> Application histories, feedback, and status changes may not be maintained in one place.</li>
+<li><strong>Delayed communication:</strong> Candidates may not receive timely updates about their application.</li>
+<li><strong>Duplicate data entry:</strong> Job, candidate, and interview information may be entered repeatedly across tools.</li>
+<li><strong>Weak role separation:</strong> Informal workflows may expose information to users who do not require access.</li>
+<li><strong>Limited searchability:</strong> Resumes, applications, and interview records may be difficult to filter or compare.</li>
+<li><strong>Low process visibility:</strong> Recruiters and candidates may not have a shared view of the current status.</li>
+<li><strong>Document handling problems:</strong> Resume formats and extraction tasks may be handled inconsistently.</li>
+<li><strong>Difficult scaling:</strong> Manual processes do not scale efficiently with growing candidate and job volumes.</li>
+</ol>
+<h2>3.3 Proposed System</h2>
+<p>RucRut proposes a single web portal with role-based dashboards and integrated recruitment workflows. The system centralises authentication, job management, application records, resume uploads, screening, interview support, and status updates. Recruiters receive structured application and screening information, candidates receive a job exploration and tracking interface, and administrators receive oversight functionality.</p>
+<p>The proposed system also introduces AI-assisted features. A screening utility compares extracted resume content with a job description and produces a similarity or match score. Interview-question generation uses job and candidate information to create a role-relevant question set. Response evaluation can produce scores and feedback for recruiter review. Because model outputs can be incomplete or biased, they are presented as supporting information rather than as an automatic hiring decision.</p>
+<h2>3.4 Existing System versus Proposed System</h2>
+<h3>Table 3.1: Existing System versus Proposed System</h3>
+<table>
+<thead>
+<tr>
+<th>Evaluation factor</th>
+<th>Existing or manual system</th>
+<th>Proposed RucRut system</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>Authentication</td>
+<td>Separate or informal access channels</td>
+<td>Single login with role-based routing</td>
+</tr>
+<tr>
+<td>Job management</td>
+<td>Documents, spreadsheets, or disconnected forms</td>
+<td>Recruiter job creation, editing, listing, and management</td>
+</tr>
+<tr>
+<td>Resume collection</td>
+<td>Email or unstructured uploads</td>
+<td>Candidate profile and controlled resume upload</td>
+</tr>
+<tr>
+<td>Resume screening</td>
+<td>Primarily manual review</td>
+<td>AI-assisted resume and job-description comparison</td>
+</tr>
+<tr>
+<td>Candidate comparison</td>
+<td>Manual side-by-side review</td>
+<td>Structured application and screening records</td>
+</tr>
+<tr>
+<td>Interview preparation</td>
+<td>Recruiter-created questions</td>
+<td>AI-assisted, job- and candidate-aware question generation</td>
+</tr>
+<tr>
+<td>Interview evaluation</td>
+<td>Notes may be inconsistent or disconnected</td>
+<td>Structured responses, scores, feedback, and status records</td>
+</tr>
+<tr>
+<td>Application tracking</td>
+<td>Email or spreadsheets</td>
+<td>Candidate and recruiter status tracking with history</td>
+</tr>
+<tr>
+<td>Administrator oversight</td>
+<td>Limited or absent</td>
+<td>User, job, application, and interview administration</td>
+</tr>
+<tr>
+<td>Access control</td>
+<td>Often informal</td>
+<td>Role-based access boundaries in Flask routes</td>
+</tr>
+<tr>
+<td>Data storage</td>
+<td>Multiple disconnected files</td>
+<td>SQLAlchemy relational records plus selected MongoDB documents</td>
+</tr>
+<tr>
+<td>Candidate experience</td>
+<td>Limited progress visibility</td>
+<td>Job search, application tracking, profile, and interview views</td>
+</tr>
+<tr>
+<td>Scalability</td>
+<td>Increasing manual effort with volume</td>
+<td>Searchable and repeatable workflow with AI-assisted prioritisation</td>
+</tr>
+<tr>
+<td>Decision-making</td>
+<td>Reviewer-dependent</td>
+<td>Human review supported by structured AI signals</td>
+</tr>
+</tbody>
+</table>
+<h2>3.5 Advantages of the Proposed System</h2>
+<p>The proposed system provides the following advantages:</p>
+<ul>
+<li>It combines recruitment activities in one portal.</li>
+<li>It reduces repetitive resume comparison work.</li>
+<li>It provides a consistent application record and status history.</li>
+<li>It improves candidate visibility into applications and interviews.</li>
+<li>It supports recruiter review with AI-generated screening and feedback signals.</li>
+<li>It separates administrator, recruiter, and candidate permissions.</li>
+<li>It allows the system to be extended with additional screening models, integrations, or reporting functions.</li>
+</ul>
+<h2>3.6 Risks and Responsible Use Considerations</h2>
+<p>AI-assisted recruitment must be used carefully. A similarity score measures the relationship between available text and job information; it does not measure a candidate’s complete ability, character, or potential. Resume formatting, missing information, vocabulary differences, and model limitations can affect results. The system should therefore retain human review, communicate that scores are assistive, protect candidate documents, and monitor outputs for unfair or unexpected patterns.</p>
+<h3>Chapter 3 Summary</h3>
+<p>Manual recruitment is affected by screening effort, inconsistent evaluation, weak traceability, and limited candidate visibility. RucRut addresses these issues through a role-based portal that integrates job management, applications, resume processing, AI-assisted screening, interviews, and tracking. The proposed system improves workflow structure and efficiency while recognising that AI outputs require human oversight and responsible use.</p>
+<hr />
+<h2>Report Status</h2>
+<p>This document contains Chapters 1–3 as requested. Chapters 4–12 will be prepared after the author confirms <strong>continue</strong>.</p></body></html>

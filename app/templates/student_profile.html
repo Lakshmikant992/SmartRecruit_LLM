@@ -1,0 +1,56 @@
+{% extends 'base.html' %}
+
+{% block title %}Student Profile{% endblock %}
+
+{% block content %}
+<style>
+  .profile-wrap { max-width: 760px; margin: 28px auto; background: var(--panel-color); border-radius: 14px; padding: 24px; box-shadow: 0 16px 30px rgba(0,0,0,.06); }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px,1fr)); gap: 16px; }
+  input, textarea { width: 100%; padding: 11px 12px; border-radius: 8px; border:1px solid #d7d7d7; }
+  textarea { min-height: 120px; }
+  .save-btn { background:#ffb703; color:#fff; border:none; padding: 10px 16px; border-radius:8px; cursor:pointer; margin-top:12px; }
+</style>
+
+<div class="profile-wrap">
+  <h2>Profile</h2>
+  <form method="post" enctype="multipart/form-data">
+    <div class="grid">
+      <div>
+        <label>First name</label>
+        <input type="text" name="first_name" value="{{ user.first_name }}" required />
+      </div>
+      <div>
+        <label>Last name</label>
+        <input type="text" name="last_name" value="{{ user.last_name }}" required />
+      </div>
+    </div>
+
+    <div style="margin-top:16px;">
+      <label>Short bio</label>
+      <textarea name="bio" placeholder="Tell recruiters about yourself">{{ user.bio or '' }}</textarea>
+    </div>
+
+    <div style="margin-top:16px;">
+      <label>Skills</label>
+      <textarea name="skills" placeholder="Python, SQL, Data Analysis, Communication...">{{ user.skills or '' }}</textarea>
+    </div>
+
+    <div style="margin-top:16px;">
+      <label>Education</label>
+      <textarea name="education" placeholder="Degree, institution, graduation year...">{{ user.education or '' }}</textarea>
+    </div>
+
+    <div style="margin-top:16px;">
+      <label for="profile-photo">Profile photo</label>
+      <input id="profile-photo" type="file" name="profile_photo" accept=".png,.jpg,.jpeg,.webp" />
+    </div>
+
+    <div style="margin-top:16px;">
+      <label>Upload resume</label>
+      <input type="file" name="resume" accept=".pdf,.doc,.docx,.txt" />
+    </div>
+
+    <button type="submit" class="save-btn">Save Profile</button>
+  </form>
+</div>
+{% endblock %}

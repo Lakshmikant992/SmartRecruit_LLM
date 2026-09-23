@@ -1,0 +1,48 @@
+{% extends 'base.html' %}
+
+{% block title %}Candidate Profile{% endblock %}
+
+{% block content %}
+<style>
+  .profile-page { max-width: 1200px; margin: 0 auto; color:#17202a; display:grid; gap:16px; }
+  .panel { background:var(--panel-color); border:1px solid #e8edf0; border-radius:14px; padding:22px; box-shadow:0 7px 18px rgba(0,0,0,.05); }
+  .profile-head { display:flex; justify-content:space-between; gap:18px; flex-wrap:wrap; align-items:flex-start; background:linear-gradient(120deg,#17202a,#236b62); color:#fff; }
+  .profile-head h1 { margin:0 0 5px; }.profile-head p { margin:4px 0; color:#d7e7e3; }.profile-head a { color:#fff; }
+  .score-box { text-align:right; }.score { font-size:34px; font-weight:700; color:#8fe1c5; }.muted { color:#718096; font-size:12px; }
+  .profile-head .muted { color:#d7e7e3; }
+  .grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(230px,1fr)); gap:16px; }.metric { border-left:3px solid #168b76; padding-left:11px; }.metric strong { display:block; font-size:11px; color:#718096; text-transform:uppercase; margin-bottom:5px; }
+  .tag { display:inline-block; background:#e5f5ef; color:#187b62; border-radius:20px; padding:5px 8px; margin:2px; font-size:11px; }.gap { background:#fff4dd; color:#8a5b00; }
+  .description { white-space:pre-wrap; line-height:1.65; }.section-title { margin:0 0 14px; }.feedback { background:#f7f9fb; border-radius:9px; padding:12px; margin-top:9px; font-size:12px; }
+  .timeline { display:grid; gap:10px; }.timeline-item { display:flex; gap:10px; }.dot { width:10px; height:10px; margin-top:4px; background:#168b76; border-radius:50%; flex:none; }
+  .actions { display:flex; flex-wrap:wrap; gap:8px; align-items:end; }.actions a, .actions button { border:0; border-radius:7px; padding:10px 13px; text-decoration:none; background:#168b76; color:#fff; cursor:pointer; font:inherit; font-size:12px; }.actions .danger { background:#c84d4d; }.actions .secondary { background:#e9eef0; color:#17202a; }
+  .edit-form { display:grid; gap:11px; }.edit-form select, .edit-form textarea { width:100%; box-sizing:border-box; padding:10px; border:1px solid #d7dfe3; border-radius:7px; background:#fff; }.edit-form textarea { min-height:100px; resize:vertical; }.toggle { display:flex; gap:8px; align-items:center; font-size:12px; }
+  .interview { border:1px solid #e3e8eb; border-radius:9px; padding:14px; margin-top:10px; }.interview h3 { margin:0 0 7px; }.interview a { color:#168b76; }
+  body.dark .profile-page { color:#f0f3f5; } body.dark .feedback, body.dark .interview { background:#303437; border-color:#3b4044; } body.dark .edit-form select, body.dark .edit-form textarea { background:#303437; color:#f0f3f5; }
+</style>
+
+<div class="profile-page">
+  <section class="panel profile-head"><div><h1>{{ application.user.first_name }} {{ application.user.last_name }}</h1><p>{{ application.user.email }} · {{ application.user.phone_number }}</p><p>Applied for <strong>{{ application.job.title }}</strong> · {{ application.job.location }}</p></div><div class="score-box"><div class="score">{{ '%.0f'|format(candidate.match_score) }}%</div><div class="muted">AI match score</div></div></section>
+
+  <section class="panel"><h2 class="section-title">Candidate Profile & Application</h2><div class="grid"><div class="metric"><strong>Skills</strong><div>{{ application.user.skills or 'No skills added to profile.' }}</div></div><div class="metric"><strong>Education</strong><div>{{ application.user.education or 'No education added to profile.' }}</div></div><div class="metric"><strong>Bio / Experience</strong><div class="description">{{ application.user.bio or 'No profile bio added.' }}</div></div><div class="metric"><strong>Applied</strong>{{ application.timestamp.strftime('%b %d, %Y at %H:%M') if application.timestamp else 'N/A' }}<br><a href="{{ url_for('main.recruiter_application_resume', application_id=application.id) }}">View / download resume</a></div></div>{% if application.cover_note %}<h3>Cover Note</h3><p class="description">{{ application.cover_note }}</p>{% endif %}</section>
+
+  <section class="panel"><h2 class="section-title">AI Screening</h2><div class="grid"><div class="metric"><strong>Matched Skills</strong>{% for skill in candidate.matched_skills %}<span class="tag">{{ skill }}</span>{% else %}<span class="muted">No matched skills extracted</span>{% endfor %}</div><div class="metric"><strong>Missing Skills</strong>{% for skill in candidate.missing_skills %}<span class="tag gap">{{ skill }}</span>{% else %}<span class="muted">No major gaps detected</span>{% endfor %}</div><div class="metric"><strong>Experience</strong>{{ candidate.experience_years }} years detected{% if candidate.relevant_roles %}<ul>{% for role in candidate.relevant_roles %}<li>{{ role }}</li>{% endfor %}</ul>{% endif %}</div><div class="metric"><strong>Education</strong>{{ candidate.education|join(', ') if candidate.education else 'Not detected in resume' }}</div></div><h3>Strengths and Gaps</h3><ul>{% for item in candidate.strengths %}<li>{{ item }}</li>{% endfor %}{% for item in candidate.gaps %}<li>{{ item }}</li>{% endfor %}</ul>{% for item in application_data.feedback or [] %}<div class="feedback"><strong>{{ item.question or 'AI feedback' }}</strong><p>{{ item.feedback or item.response }}</p></div>{% endfor %}</section>
+
+  {% if application_data.responses or interviews %}<section class="panel"><h2 class="section-title">Interview Evidence</h2>{% for key, response in application_data.responses.items() %}<div class="feedback"><strong>Question {{ (key|int) + 1 }}</strong><p><strong>Response:</strong> {{ response }}</p>{% if application_data.feedback and application_data.feedback|length > (key|int) %}<p><strong>AI evaluation:</strong> {{ application_data.feedback[key|int].feedback }}</p>{% endif %}</div>{% endfor %}{% for interview in interviews %}<div class="interview"><h3>{{ interview.interview_round }} · {{ interview.interview_type }}</h3><p>{{ interview.scheduled_at.strftime('%b %d, %Y at %H:%M') }} · {{ interview.status }}</p>{% if interview.meeting_link %}<a href="{{ interview.meeting_link }}" target="_blank" rel="noopener">Meeting link</a>{% endif %}{% if interview.notes %}<p>{{ interview.notes }}</p>{% endif %}{% if interview.feedback %}<div class="feedback">{{ interview.feedback.comments }} · {{ interview.feedback.recommendation }}</div>{% endif %}</div>{% endfor %}</section>{% endif %}
+
+  <section class="panel"><h2 class="section-title">Status & Recruiter Notes</h2><form class="edit-form" method="post" action="{{ url_for('main.update_recruiter_application', application_id=application.id) }}"><select name="status" aria-label="Application status">{% for item in ('Applied','Under Review','Interview','Offered','Rejected') %}<option value="{{ item }}" {% if (('Offered' if application.status == 'Accepted' else ('Under Review' if application.status == 'Pending' else application.status)) == item) %}selected{% endif %}>{{ item }}</option>{% endfor %}</select><textarea name="recruiter_notes" placeholder="Private recruiter notes...">{{ application.recruiter_notes or '' }}</textarea><label class="toggle"><input type="checkbox" name="recruiter_notes_visible" {% if application.recruiter_notes_visible %}checked{% endif %}> Make these notes visible to the candidate</label><div class="actions"><button type="submit">Save Changes</button><a href="{{ url_for('main.interviews') }}">Move to Quick AI Interview</a><a href="{{ url_for('main.recruiter_applications', job_id=application.job_id) }}" class="secondary">Compare Candidates</a></div></form>
+    <form method="post" action="{{ url_for('main.grant_interview_access', application_id=application.id) }}" style="margin-top: 16px;">
+      <div class="actions">
+        {% if application.interview_access == 'completed' %}
+          <button type="submit" name="action" value="reset" class="danger">Reset Interview Access</button>
+        {% elif application.interview_access == 'granted' %}
+          <button type="submit" name="action" value="reset" class="secondary">Revoke Access</button>
+        {% else %}
+          <button type="submit" name="action" value="grant">Grant Interview Access</button>
+        {% endif %}
+      </div>
+    </form>
+  </section>
+
+  <section class="panel"><h2 class="section-title">Status Timeline</h2><div class="timeline">{% for item in status_history %}<div class="timeline-item"><span class="dot"></span><div><strong>{{ item.status }}</strong><br><span class="muted">{{ item.timestamp[:16]|replace('T',' ') if item.timestamp else 'Timestamp unavailable' }}</span></div></div>{% endfor %}</div></section>
+</div>
+{% endblock %}

@@ -1,0 +1,25 @@
+# Local configuration and secrets
+.env
+.env.*
+!.env.example
+
+# Python runtime artifacts
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# Flask runtime state
+flask_session/
+instance/*.db
+instance/*.sqlite
+instance/*.sqlite3
+
+# User-generated uploads
+app/static/uploads/cv/
+app/static/uploads/photos/
+
+# Generated report exports
+*.pdf
+
+# Local IDE files
+.vscode/

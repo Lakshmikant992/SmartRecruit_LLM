@@ -1,0 +1,32 @@
+{% extends 'base.html' %}
+
+{% block title %}Apply to Job{% endblock %}
+
+{% block content %}
+<style>
+  .apply-wrap { max-width: 760px; margin: 30px auto; background: var(--panel-color); border-radius: 14px; padding: 24px; box-shadow: 0 12px 28px rgba(0,0,0,.06); }
+  .fields { display: grid; gap: 16px; }
+  textarea, input { width:100%; padding: 12px; border-radius: 8px; border:1px solid #d9d9d9; }
+  textarea { min-height: 130px; }
+  .submit-btn { background:#ffb703; color:#fff; border:none; padding:12px 18px; border-radius:8px; cursor:pointer; margin-top:8px; }
+</style>
+
+<div class="apply-wrap">
+  <h2>Apply for {{ job.title }}</h2>
+  <p>{{ job.location }} • {{ job.job_type or 'Full-time' }}</p>
+
+  <form method="post" enctype="multipart/form-data" class="fields">
+    <div>
+      <label for="resume">Upload resume (PDF, DOC, DOCX, TXT)</label>
+      <input type="file" id="resume" name="resume" accept=".pdf,.doc,.docx,.txt" />
+    </div>
+
+    <div>
+      <label for="cover_note">Cover note</label>
+      <textarea id="cover_note" name="cover_note" placeholder="Tell the recruiter why you are a good fit..."></textarea>
+    </div>
+
+    <button type="submit" class="submit-btn">Submit Application</button>
+  </form>
+</div>
+{% endblock %}

@@ -1,0 +1,99 @@
+{% extends 'base.html' %}
+
+{% block title %}My Applications{% endblock %}
+
+{% block content %}
+<style>
+  .applications-page { max-width: 1120px; margin: 24px auto; }
+  .page-heading, .application-card, .empty-state { background: var(--panel-color); border-radius: 14px; box-shadow: 0 8px 22px rgba(0,0,0,.06); }
+  .page-heading { padding: 22px; margin-bottom: 16px; }
+  .page-heading h1 { margin: 0; }
+  .filters { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 18px; }
+  .filters select, .filters button { border: 1px solid #d8d8d8; border-radius: 8px; padding: 9px 12px; background: #fff; }
+  .filters button { background: #ffb703; border-color: #ffb703; color: #fff; cursor: pointer; }
+  .application-list { display: grid; gap: 14px; }
+  .application-card { padding: 20px; }
+  .card-top { display: flex; align-items: flex-start; justify-content: space-between; gap: 16px; }
+  .card-top h2 { margin: 0 0 6px; font-size: 20px; }
+  .muted { color: #6d6d6d; }
+  .meta-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(145px, 1fr)); gap: 12px; margin: 18px 0; }
+  .meta-item { border-left: 3px solid #ffb703; padding-left: 10px; }
+  .meta-item strong { display: block; font-size: 12px; color: #6d6d6d; margin-bottom: 3px; }
+  .status-badge { border-radius: 999px; padding: 7px 11px; font-size: 12px; font-weight: 700; white-space: nowrap; }
+  .status-applied { background:#e8f1ff; color:#2058a5; }
+  .status-under-review { background:#fff3cc; color:#7a5200; }
+  .status-interview { background:#e8ddff; color:#5a2da8; }
+  .status-offered { background:#dff7e7; color:#16713b; }
+  .status-rejected { background:#ffe3e3; color:#a52828; }
+  .score { font-weight: 700; color: #16713b; }
+  .card-actions { display:flex; align-items:center; justify-content:space-between; gap: 12px; flex-wrap: wrap; }
+  .details-link { background:#0d6efd; color:#fff; padding:9px 13px; border-radius:8px; text-decoration:none; }
+  .empty-state { padding: 34px; text-align:center; }
+  .pipeline { display:flex; gap:6px; margin:18px 0; flex-wrap:wrap; }
+  .pipeline span { flex:1; min-width:100px; text-align:center; padding:8px 6px; border-radius:7px; background:#f0f1f2; color:#727272; font-size:12px; }
+  .pipeline .active { background:#fff3cc; color:#7a5200; font-weight:700; }
+  .withdraw { border:1px solid #d9aaaa; background:transparent; color:#a52828; padding:9px 13px; border-radius:8px; cursor:pointer; }
+  @media (max-width: 600px) { .card-top { flex-direction: column; } .status-badge { align-self: flex-start; } }
+</style>
+
+<div class="applications-page">
+  <div class="page-heading">
+    <h1>My Applications</h1>
+    <p class="muted">Track every application, recruiter update, and interview in one place.</p>
+    <form class="filters" method="get">
+      <select name="status" aria-label="Filter by status">
+        <option value="">All statuses</option>
+        {% for status in status_options %}
+        <option value="{{ status }}" {% if selected_status == status %}selected{% endif %}>{{ status }}</option>
+        {% endfor %}
+      </select>
+      <select name="sort" aria-label="Sort applications">
+        <option value="date" {% if selected_sort == 'date' %}selected{% endif %}>Newest applied</option>
+        <option value="status" {% if selected_sort == 'status' %}selected{% endif %}>Status</option>
+        <option value="score" {% if selected_sort == 'score' %}selected{% endif %}>AI match score</option>
+      </select>
+      <button type="submit">Apply</button>
+    </form>
+  </div>
+
+  <div class="application-list">
+    {% for application in applications %}
+    {% set display_status = 'Offered' if application.status == 'Accepted' else ('Under Review' if application.status == 'Pending' else application.status) %}
+    <article class="application-card">
+      <div class="card-top">
+        <div>
+          <h2>{{ application.job.title }}</h2>
+          <div class="muted">{{ application.job.recruiter.company_name or (application.job.recruiter.first_name ~ ' ' ~ application.job.recruiter.last_name) }}</div>
+        </div>
+        <span class="status-badge status-{{ display_status|lower|replace(' ', '-') }}">{{ display_status }}</span>
+      </div>
+      <div class="meta-grid">
+        <div class="meta-item"><strong>Location</strong>{{ application.job.location }}</div>
+        <div class="meta-item"><strong>Job type</strong>{{ application.job.job_type or 'Full-time' }}</div>
+        <div class="meta-item"><strong>Applied</strong>{{ application.timestamp.strftime('%b %d, %Y') if application.timestamp else 'N/A' }}</div>
+        <div class="meta-item"><strong>AI match</strong><span class="score">{{ '%.0f'|format(application.ai_score) if application.ai_score is not none else 'N/A' }}%</span></div>
+      </div>
+      <div class="pipeline" aria-label="Application status pipeline"><span class="active">Applied</span><span class="{% if display_status in ['Under Review', 'Interview', 'Offered'] %}active{% endif %}">Screened</span><span class="{% if display_status in ['Interview', 'Offered'] %}active{% endif %}">Interview</span><span class="{% if display_status == 'Offered' %}active{% endif %}">Result</span></div>
+      <div class="card-actions">
+        <span class="muted">{{ application.interviews|length }} interview{{ '' if application.interviews|length == 1 else 's' }}</span>
+        {% if application.interview_access == 'granted' %}
+          <a class="details-link" href="{{ url_for('main.student_interview', application_id=application.id) }}">Start AI Interview</a>
+        {% elif application.interview_access == 'completed' %}
+          <span class="status-badge status-offered">Interview completed</span>
+        {% else %}
+          <span class="status-badge status-under-review">Access pending</span>
+        {% endif %}
+        <a class="details-link" href="{{ url_for('main.student_application_detail', application_id=application.id) }}">View Details</a>
+        {% if display_status not in ['Offered', 'Rejected', 'Withdrawn'] %}<form method="post" action="{{ url_for('main.student_withdraw_application', application_id=application.id) }}"><button class="withdraw" type="submit">Withdraw</button></form>{% endif %}
+      </div>
+    </article>
+    {% else %}
+    <div class="empty-state">
+      <h2>No applications found</h2>
+      <p class="muted">Apply to a job to start tracking your progress here.</p>
+      <a class="details-link" href="{{ url_for('main.student_jobs') }}">Browse Jobs</a>
+    </div>
+    {% endfor %}
+  </div>
+</div>
+{% endblock %}

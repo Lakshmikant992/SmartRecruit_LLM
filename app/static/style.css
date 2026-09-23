@@ -458,6 +458,22 @@ nav.close ~ .dashboard .top{
     }
 }
 
+.nav-scrim{display:none}
+.avatar-fallback{display:grid;place-items:center;width:40px;height:40px;border-radius:50%;background:#ffb703;color:#fff;font-weight:700}
+button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible,textarea:focus-visible{outline:3px solid rgba(255,175,0,.45);outline-offset:2px}
+body.dark input,body.dark select,body.dark textarea{color:var(--text-color);background:var(--panel-color);border-color:var(--border-color)}
+@media(max-width:650px){
+    nav{width:min(290px,86vw);transform:translateX(-100%);z-index:30;box-shadow:12px 0 30px rgba(0,0,0,.16)}
+    nav.mobile-open{transform:translateX(0)}
+    nav.close{width:min(290px,86vw)}
+    nav .link-name,nav.close .link-name{opacity:1;pointer-events:auto}
+    nav .logo-image img{width:180px}
+    nav ~ .dashboard,nav.close ~ .dashboard{left:0;width:100%;padding:10px 14px}
+    nav ~ .dashboard .top,nav.close ~ .dashboard .top{left:0;width:100%;padding:10px 14px}
+    .nav-scrim{position:fixed;inset:0;background:rgba(20,20,20,.42);z-index:20}
+    .nav-scrim.visible{display:block}
+}
+
 /* Styling for the Create Job Form */
 /* Light mode styles */
 .create-job {

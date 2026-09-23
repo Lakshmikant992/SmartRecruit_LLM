@@ -1,4 +1,6 @@
 import os
+import zipfile
+import xml.etree.ElementTree as ET
 from werkzeug.utils import secure_filename
 from flask import current_app
 import re
@@ -7,11 +9,31 @@ import json
 import time
 import logging
 import pdfplumber  # type: ignore
-from sentence_transformers import SentenceTransformer, util  # type: ignore
+try:
+    from sentence_transformers import SentenceTransformer, util  # type: ignore
+except Exception as exc:
+    logging.warning('SentenceTransformer dependencies unavailable; lexical scoring will be used: %s', exc)
+    SentenceTransformer = None
+    util = None
 
-# Initialize the sentence transformer model
-model = SentenceTransformer('multi-qa-mpnet-base-dot-v1')
 logging.basicConfig(level=logging.DEBUG)
+
+MODEL_NAME = 'multi-qa-mpnet-base-dot-v1'
+_model = None
+
+
+def get_model():
+    """Load the sentence-transformer model lazily and gracefully handle offline or blocked downloads."""
+    global _model
+    if _model is None:
+        try:
+            if SentenceTransformer is None:
+                raise RuntimeError('SentenceTransformer is unavailable')
+            _model = SentenceTransformer(MODEL_NAME)
+        except Exception as exc:
+            logging.warning("SentenceTransformer model could not be loaded: %s. Falling back to lexical similarity.", exc)
+            _model = False
+    return _model if _model is not False else None
 
 def create_upload_folders(app):
     """
@@ -36,6 +58,33 @@ def allowed_file(filename, allowed_extensions):
         bool: True if the file has an allowed extension, False otherwise.
     """
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in allowed_extensions
+
+
+def extract_resume_text(file_path):
+    """Extract plain text from PDF, TXT, or DOCX files for screening."""
+    ext = os.path.splitext(file_path)[1].lower()
+    if ext == '.txt':
+        with open(file_path, 'r', encoding='utf-8', errors='ignore') as handle:
+            return handle.read()
+
+    if ext == '.pdf':
+        with pdfplumber.open(file_path) as pdf:
+            return '\n'.join(page.extract_text() or '' for page in pdf.pages)
+
+    if ext == '.docx':
+        try:
+            with zipfile.ZipFile(file_path) as zf:
+                xml = zf.read('word/document.xml')
+            root = ET.fromstring(xml)
+            ns = {'w': 'http://schemas.openxmlformats.org/wordprocessingml/2006/main'}
+            texts = [node.text for node in root.iterfind('.//w:t', ns) if node.text]
+            return ' '.join(texts)
+        except Exception as exc:
+            logging.warning('DOCX extraction failed: %s', exc)
+            return ''
+
+    return ''
+
 
 def preprocess_text(text):
     """
@@ -65,6 +114,16 @@ def compute_similarity(cv_text, job_description):
     cv_text = preprocess_text(cv_text)
     job_description = preprocess_text(job_description)
 
+    model = get_model()
+    if model is None:
+        cv_tokens = set(re.findall(r'\w+', cv_text.lower()))
+        job_tokens = set(re.findall(r'\w+', job_description.lower()))
+        if not cv_tokens or not job_tokens:
+            return 0.0
+        overlap = len(cv_tokens & job_tokens)
+        union = len(cv_tokens | job_tokens)
+        return round((overlap / union) if union else 0.0, 4)
+
     embeddings_cv = model.encode(cv_text, convert_to_tensor=True)
     embeddings_job_desc = model.encode(job_description, convert_to_tensor=True)
 
@@ -88,6 +147,57 @@ def evaluate_cv(cv_text, job_description, threshold = 0.5):
     logging.info(f"Similarity score: {similarity:.2f}")
 
     return similarity > threshold, similarity
+
+
+def rank_resume_comparison(candidates, job_description):
+    """Rank selected applications using the existing resume-match signals.
+
+    The function accepts plain dictionaries so it can later be reused for a
+    whole applicant pool without coupling bulk screening to Flask models.
+    """
+    job_terms = set(re.findall(r'[a-zA-Z][a-zA-Z+#.-]{2,}', job_description.lower()))
+    education_terms = ('phd', 'doctorate', 'master', 'msc', 'mba', 'bachelor', 'bsc', 'degree', 'diploma')
+    ranked = []
+
+    for candidate in candidates:
+        resume_text = candidate.get('resume_text', '') or ''
+        resume_terms = set(re.findall(r'[a-zA-Z][a-zA-Z+#.-]{2,}', resume_text.lower()))
+        matched = sorted(job_terms & resume_terms)
+        missing = sorted(job_terms - resume_terms)
+        years = re.findall(r'(?:\b|about\s)(\d{1,2})\+?\s+years?', resume_text.lower())
+        experience_years = max((int(value) for value in years), default=0)
+        role_lines = [line.strip() for line in resume_text.splitlines() if re.search(r'\b(engineer|developer|manager|analyst|designer|specialist|consultant|lead)\b', line, re.I)]
+        education = [term.title() for term in education_terms if term in resume_text.lower()]
+        raw_score = float(candidate.get('score', 0) or 0)
+        if raw_score <= 1:
+            score_percent = raw_score * 100
+        elif raw_score <= 10:
+            score_percent = raw_score * 10
+        else:
+            score_percent = raw_score
+        if not score_percent and matched:
+            score_percent = (len(matched) / max(len(job_terms), 1)) * 100
+        ranked.append({
+            **candidate,
+            'match_score': round(min(100, max(0, score_percent)), 1),
+            'matched_skills': matched[:12],
+            'missing_skills': missing[:12],
+            'experience_years': experience_years,
+            'relevant_roles': role_lines[:4],
+            'education': education[:4],
+            'strengths': [f'Matches {len(matched)} job keywords'] + ([f'{experience_years}+ years of experience'] if experience_years else []),
+            'gaps': [f'Missing: {", ".join(missing[:4])}'] if missing else ['No major keyword gaps detected'],
+        })
+
+    ranked.sort(key=lambda item: (item['match_score'], len(item['matched_skills'])), reverse=True)
+    for index, candidate in enumerate(ranked, start=1):
+        candidate['rank'] = index
+        candidate['is_top_pick'] = bool(ranked and candidate['match_score'] == ranked[0]['match_score'])
+    common_missing = sorted(set.intersection(*(set(item['missing_skills']) for item in ranked))) if ranked else []
+    strong_match = bool(ranked and ranked[0]['match_score'] >= 70)
+    ranking_summary = ' > '.join(item['name'] for item in ranked) or 'No candidates selected'
+    explanation = f'{ranking_summary}. ' + ('The top candidate has the strongest overlap with the job requirements.' if ranked else 'Select at least two applicants to compare.')
+    return {'candidates': ranked, 'strong_match': strong_match, 'common_missing': common_missing[:8], 'summary': explanation}
 
 def generate_interview_questions(cv_text, job_description, max_retries=10):
     """
@@ -229,6 +339,59 @@ def generate_feedback(question_text, response_text, job_description, max_retries
             break
 
     return "Error: Could not generate feedback after multiple attempts."
+
+
+def evaluate_interview_response(question_text, response_text, job_description, resume_text='', max_retries=3):
+    """Return AI-style evaluation with a score and narrative feedback, with a safe local fallback."""
+    prompt = f"""Assess the candidate's answer for relevance to the role, technical depth, clarity, and alignment to the job description. Provide concise feedback and a score out of 10 formatted exactly as 'Score: X/10'.
+
+Question: {question_text}
+Candidate answer: {response_text}
+Job description: {job_description}
+Resume highlights: {resume_text[:1500]}
+"""
+    data = {
+        "inputs": prompt,
+        "parameters": {
+            "max_new_tokens": 400,
+            "temperature": 0.5,
+            "top_p": 0.9,
+            "do_sample": True,
+        },
+    }
+    headers = {
+        "Authorization": f"Bearer {current_app.config['API_TOKEN']}",
+        "Content-Type": "application/json",
+    }
+
+    for attempt in range(max_retries):
+        try:
+            response = requests.post(current_app.config['API_URL'], headers=headers, data=json.dumps(data), timeout=30)
+            response.raise_for_status()
+            result = response.json()
+            generated_text = result[0].get('generated_text', '') if isinstance(result, list) and result else ''
+            if generated_text:
+                feedback = generated_text.strip()
+                score = extract_score(feedback) or 0
+                if score > 0:
+                    return {'score': round(float(score), 1), 'feedback': feedback}
+        except Exception as exc:
+            logging.warning('AI interview evaluation failed (%s): %s', attempt + 1, exc)
+            time.sleep(0.5 * (attempt + 1))
+
+    keywords = set(re.findall(r'[a-zA-Z][a-zA-Z+#.-]{2,}', (job_description or '').lower()))
+    answer_tokens = set(re.findall(r'[a-zA-Z][a-zA-Z+#.-]{2,}', (response_text or '').lower()))
+    overlap = len(keywords & answer_tokens)
+    score = round(min(10.0, max(0.0, (overlap / max(len(keywords), 1)) * 10 + (0.8 if len(response_text.strip().split()) > 20 else 0.4))), 1)
+    if not response_text.strip():
+        score = 0.0
+    fallback_feedback = (
+        f"The response shows {'good' if overlap else 'limited'} alignment with the role requirements. "
+        f"It {'demonstrates relevant experience and structure' if score >= 6 else 'would benefit from more concrete examples and role-specific detail'}."
+        f" Score: {score:.1f}/10"
+    )
+    return {'score': score, 'feedback': fallback_feedback}
+
 
 def convert_keys_to_strings(data):
     """

@@ -11,6 +11,7 @@ def sign():
         if action == 'signup':
             first_name = request.form['first_name']
             last_name = request.form['last_name']
+            role = request.form.get('role', 'recruiter').strip().lower() or 'recruiter'
             company_name = request.form['company_name']
             email = request.form['email']
             phone_number = request.form['phone_number']
@@ -23,7 +24,7 @@ def sign():
                 return redirect(url_for('auth.sign'))
 
             user = User(first_name=first_name, last_name=last_name, company_name=company_name,
-                        email=email, phone_number=phone_number, birthday=birthday, password=password)
+                        email=email, phone_number=phone_number, birthday=birthday, password=password, role=role)
             db.session.add(user)
             db.session.commit()
             flash('Signup successful! You can now sign in.', 'success')

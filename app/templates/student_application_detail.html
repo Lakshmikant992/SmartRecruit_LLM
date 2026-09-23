@@ -1,0 +1,120 @@
+{% extends 'base.html' %}
+
+{% block title %}Application Details{% endblock %}
+
+{% block content %}
+<style>
+  .application-detail { max-width: 1040px; margin: 24px auto; display:grid; gap:16px; }
+  .detail-panel { background:var(--panel-color); border-radius:14px; padding:22px; box-shadow:0 8px 22px rgba(0,0,0,.06); }
+  .detail-header { display:flex; justify-content:space-between; gap:16px; flex-wrap:wrap; align-items:flex-start; }
+  .detail-header h1 { margin:0 0 6px; }
+  .muted { color:#6d6d6d; }
+  .status-badge, .chip { display:inline-block; border-radius:999px; padding:7px 11px; font-size:12px; font-weight:700; }
+  .status-badge { background:#fff3cc; color:#7a5200; }
+  .chip { background:#e8f1ff; color:#2058a5; margin: 3px 5px 3px 0; }
+  .detail-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(210px,1fr)); gap:14px; margin-top:18px; }
+  .metric { border-left:3px solid #ffb703; padding-left:10px; }
+  .metric strong { display:block; font-size:12px; color:#6d6d6d; margin-bottom:4px; }
+  .description { white-space:pre-wrap; line-height:1.7; }
+  .timeline { display:grid; gap:12px; margin-top:14px; }
+  .timeline-item { display:flex; gap:12px; align-items:flex-start; }
+  .timeline-dot { width:11px; height:11px; margin-top:5px; background:#ffb703; border-radius:50%; flex:0 0 auto; }
+  .timeline-item strong { display:block; }
+  .timeline-item time { color:#6d6d6d; font-size:13px; }
+  .interview-card { border:1px solid #e4e4e4; border-radius:10px; padding:14px; margin-top:12px; }
+  .interview-card h3 { margin:0 0 8px; }
+  .feedback { background:#f7f9fb; border-radius:10px; padding:13px; margin-top:10px; }
+  .action-link { display:inline-block; background:#0d6efd; color:#fff; padding:9px 13px; border-radius:8px; text-decoration:none; margin:4px 5px 0 0; }
+  .secondary-link { background:#e9ecef; color:#222; }
+</style>
+
+{% set display_status = 'Offered' if application.status == 'Accepted' else ('Under Review' if application.status == 'Pending' else application.status) %}
+<div class="application-detail">
+  <section class="detail-panel detail-header">
+    <div>
+      <h1>{{ application.job.title }}</h1>
+      <div class="muted">{{ application.job.recruiter.company_name or (application.job.recruiter.first_name ~ ' ' ~ application.job.recruiter.last_name) }} · {{ application.job.location }}</div>
+    </div>
+    <span class="status-badge">{{ display_status }}</span>
+  </section>
+
+  <section class="detail-panel">
+    <h2>Application Summary</h2>
+    <div class="detail-grid">
+      <div class="metric"><strong>Applied</strong>{{ application.timestamp.strftime('%b %d, %Y at %H:%M') if application.timestamp else 'N/A' }}</div>
+      <div class="metric"><strong>Job type</strong>{{ application.job.job_type or 'Full-time' }}</div>
+      <div class="metric"><strong>AI match score</strong>{{ '%.0f'|format(application.ai_score) if application.ai_score is not none else 'N/A' }}%</div>
+      <div class="metric"><strong>Resume submitted</strong>{% if application.submitted_resume %}<a href="{{ url_for('main.student_application_resume', application_id=application.id) }}">View resume</a>{% else %}Not recorded{% endif %}</div>
+    </div>
+    {% if application.cover_note %}<h3>Cover Note</h3><p class="description">{{ application.cover_note }}</p>{% endif %}
+      {% if application.recruiter_notes and application.recruiter_notes_visible %}<h3>Recruiter Notes</h3><p class="description">{{ application.recruiter_notes }}</p>{% endif %}
+  </section>
+
+  <section class="detail-panel">
+    <h2>Job Description & Requirements</h2>
+    <div class="description">{{ application.job.description }}</div>
+  </section>
+
+  <section class="detail-panel">
+    <h2>Status Timeline</h2>
+    <div class="timeline">
+      {% for item in status_history %}
+      <div class="timeline-item"><span class="timeline-dot"></span><div><strong>{{ 'Offered' if item.status == 'Accepted' else ('Under Review' if item.status == 'Pending' else item.status) }}</strong><time>{{ item.timestamp[:16]|replace('T', ' ') if item.timestamp else 'Timestamp unavailable' }}</time></div></div>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="detail-panel">
+    <h2>AI Interview Access</h2>
+    <p><strong>Status:</strong> {{ interview_status }}</p>
+    {% if application.interview_access == 'granted' %}
+      <a class="action-link" href="{{ url_for('main.student_interview', application_id=application.id) }}">Continue AI Interview</a>
+    {% elif application.interview_access == 'completed' %}
+      <div class="notice">Interview completed and locked.</div>
+      <a class="action-link secondary-link" href="{{ url_for('main.student_interview', application_id=application.id) }}">View transcript and score</a>
+    {% else %}
+      <div class="locked">Interview access not yet granted. The recruiter must explicitly allow this interview before you can start.</div>
+    {% endif %}
+  </section>
+
+  {% if application_data and (application_data.feedback or application_data.responses) %}
+  <section class="detail-panel">
+    <h2>AI Screening Summary</h2>
+    <p><strong>Match score:</strong> {{ '%.0f'|format(application.ai_score) if application.ai_score is not none else 'N/A' }}%</p>
+    {% for item in application_data.feedback or [] %}
+      <div class="feedback"><strong>{{ item.question or 'Screening feedback' }}</strong><p>{{ item.feedback or item.response or 'Automated screening result' }}</p>{% if item.score is defined %}<span class="chip">Score: {{ item.score }}</span>{% endif %}</div>
+    {% endfor %}
+    {% if application_data.responses %}
+    <h3>Interview Responses & AI Evaluation</h3>
+    {% for key, response in application_data.responses.items() %}
+      {% set evaluation = (application_data.feedback or [])[key|int] if (application_data.feedback or [])|length > (key|int) else none %}
+      <div class="feedback">
+        <strong>Question {{ (key|int) + 1 }}</strong>
+        <p><strong>Response:</strong> {{ response }}</p>
+        {% if evaluation and evaluation.feedback %}<p><strong>AI evaluation:</strong> {{ evaluation.feedback }}</p>{% endif %}
+      </div>
+    {% endfor %}
+    {% endif %}
+  </section>
+  {% endif %}
+
+  {% if interviews %}
+  <section class="detail-panel">
+    <h2>Interviews</h2>
+    {% for interview in interviews %}
+    <div class="interview-card">
+      <h3>{{ interview.interview_round }} · {{ interview.interview_type }}</h3>
+      <p><strong>{{ interview.scheduled_at.strftime('%b %d, %Y at %H:%M') }}</strong> · {{ interview.duration_minutes }} minutes · {{ interview.status }}</p>
+      {% if interview.meeting_link %}<a class="action-link" href="{{ interview.meeting_link }}" target="_blank" rel="noopener">Open meeting link</a>{% endif %}
+      {% if interview.notes and interview.notes_visible %}<p><strong>Recruiter notes:</strong> {{ interview.notes }}</p>{% endif %}
+      {% if interview.feedback %}
+      <div class="feedback"><strong>Interview evaluation</strong><p>{{ interview.feedback.comments }}</p><span class="chip">Recommendation: {{ interview.feedback.recommendation }}</span><span class="chip">Overall: {{ interview.feedback.overall_rating }}/5</span></div>
+      {% endif %}
+    </div>
+    {% endfor %}
+  </section>
+  {% endif %}
+
+  <div><a class="action-link secondary-link" href="{{ url_for('main.student_applications') }}">Back to applications</a></div>
+</div>
+{% endblock %}

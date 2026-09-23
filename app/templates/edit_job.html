@@ -19,8 +19,30 @@
             <textarea id="job-description" name="description" placeholder="Enter job description" required>{{ job.description }}</textarea>
         </div>
         <div class="form-group">
+            <label for="job-role">Role</label>
+            <input type="text" id="job-role" name="job_role" value="{{ job.job_role or '' }}" required>
+        </div>
+        <div class="form-group">
+            <label for="job-type">Job Type</label>
+            <select id="job-type" name="job_type" required>{% for value in ['Full-time','Part-time','Contract','Internship'] %}<option {% if job.job_type == value %}selected{% endif %}>{{ value }}</option>{% endfor %}</select>
+        </div>
+        <div class="form-group">
             <label for="job-location">Location</label>
-            <input type="text" id="job-location" name="location" value="{{ job.location }}" placeholder="Enter job location" required>
+            <select id="job-location" name="location" required>
+                <option value="Remote" {% if job.location == 'Remote' %}selected{% endif %}>Remote</option>
+                <option value="New York, NY" {% if job.location == 'New York, NY' %}selected{% endif %}>New York, NY</option>
+                <option value="London, UK" {% if job.location == 'London, UK' %}selected{% endif %}>London, UK</option>
+                <option value="Toronto, Canada" {% if job.location == 'Toronto, Canada' %}selected{% endif %}>Toronto, Canada</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label for="job-experience">Experience Level</label>
+            <select id="job-experience" name="experience" required>
+                <option value="Entry level" {% if job.experience == 'Entry level' %}selected{% endif %}>Entry level</option>
+                <option value="Mid level" {% if job.experience == 'Mid level' %}selected{% endif %}>Mid level</option>
+                <option value="Senior" {% if job.experience == 'Senior' %}selected{% endif %}>Senior</option>
+                <option value="Lead / Principal" {% if job.experience == 'Lead / Principal' %}selected{% endif %}>Lead / Principal</option>
+            </select>
         </div>
         <div class="form-group">
             <label for="job-salary">Salary</label>

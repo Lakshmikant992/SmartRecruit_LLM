@@ -82,7 +82,12 @@
                     <h2>Signup</h2>
                     <input type="text" name="first_name" placeholder="First Name" required />
                     <input type="text" name="last_name" placeholder="Last Name" required />
-                    <input type="text" name="company_name" placeholder="Company Name" required />
+                    <select name="role" required style="margin-bottom: 10px;">
+                        <option value="recruiter">Recruiter</option>
+                        <option value="student">Student</option>
+                        <option value="admin">Administrator</option>
+                    </select>
+                    <input type="text" name="company_name" placeholder="Company Name or University" />
                     <input type="email" name="email" placeholder="Email" required />
                     <input type="tel" name="phone_number" placeholder="Phone Number" required />
                     <input type="date" name="birthday" placeholder="Birthday" required />

@@ -1,0 +1,65 @@
+{% extends 'base.html' %}
+{% block title %}AI Interview{% endblock %}
+{% block content %}
+<style>
+  .student-interview{max-width:820px;margin:auto}.panel{background:var(--panel-color);border:1px solid #e8edf0;border-radius:14px;padding:24px}.question{padding:18px 0}.question h3{font-size:15px;margin:0 0 9px}.question textarea{width:100%;min-height:140px;box-sizing:border-box;border:1px solid #d7dfe3;border-radius:7px;padding:11px}.button{border:0;border-radius:7px;padding:11px 15px;background:#168b76;color:#fff;cursor:pointer;font:inherit}.score{color:#168b76;font-size:26px;font-weight:700}.notice{background:#e5f5ef;border-radius:8px;color:#187b62;padding:12px}.locked{background:#fff4dd;border-radius:8px;color:#8a5b00;padding:14px}.timer{font-size:14px;font-weight:700;color:#2f3b52;margin:6px 0 0}.progress{font-size:12px;color:#718096;margin:6px 0 12px}.actions{text-align:right;margin-top:12px}.secondary{background:#e9eef0;color:#17202a;padding:10px 14px;border:0;border-radius:7px;text-decoration:none;display:inline-block;}
+</style>
+<div class="student-interview">
+  <section class="panel">
+    <h1>{{ interview.interview_type }}: {{ application.job.title }}</h1>
+    {% if interview.status == 'Completed' or completed %}
+      <div class="notice">Interview completed.</div>
+      <p class="score">Overall score: {{ interview.overall_score or 0 }}/10</p>
+      <div class="question">
+        <h3>Transcript</h3>
+        {% for idx, question in enumerate(questions) %}
+          {% set answer = responses.get(idx|string, '') %}
+          {% if answer %}
+            <div style="margin-bottom: 14px; border-bottom: 1px solid #edf0f2; padding-bottom: 10px;">
+              <strong>{{ idx + 1 }}. {{ question }}</strong>
+              <p>{{ answer }}</p>
+            </div>
+          {% endif %}
+        {% endfor %}
+      </div>
+    {% else %}
+      {% set total_questions = questions|length %}
+      {% if total_questions %}
+        <div class="progress">Question {{ current_index + 1 }} of {{ total_questions }}</div>
+        <div class="timer" id="timer">Time remaining: 02:00</div>
+        <form method="post">
+          <input type="hidden" name="question_index" value="{{ current_index }}">
+          <div class="question">
+            <h3>{{ current_index + 1 }}. {{ questions[current_index] }}</h3>
+            <textarea name="answer" placeholder="Type your answer here..." required>{{ responses.get(current_index|string, '') }}</textarea>
+          </div>
+          <div class="actions">
+            <button class="button" type="submit">{{ 'Submit Final Answer' if current_index == total_questions - 1 else 'Save & Continue' }}</button>
+          </div>
+        </form>
+      {% else %}
+        <div class="notice">No AI interview questions are available yet.</div>
+      {% endif %}
+    {% endif %}
+  </section>
+</div>
+<script>
+  const timeLimit = 120;
+  const timerEl = document.getElementById('timer');
+  if (timerEl) {
+    let remaining = timeLimit;
+    const interval = setInterval(() => {
+      remaining -= 1;
+      const minutes = String(Math.floor(remaining / 60)).padStart(2, '0');
+      const seconds = String(remaining % 60).padStart(2, '0');
+      timerEl.textContent = 'Time remaining: ' + minutes + ':' + seconds;
+      if (remaining <= 0) {
+        clearInterval(interval);
+        timerEl.textContent = 'Time expired';
+        const form = timerEl.closest('form');
+        if (form) form.submit();
+      }
+    }, 1000);
+  }
+</script>
+{% endblock %}

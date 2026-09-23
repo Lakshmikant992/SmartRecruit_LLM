@@ -1,0 +1,72 @@
+{% extends 'base.html' %}
+
+{% block title %}Compare Resumes{% endblock %}
+
+{% block content %}
+<style>
+  .compare-page { max-width: 1400px; margin: 0 auto; color: #17202a; }
+  .compare-hero, .compare-panel { background: var(--panel-color); border: 1px solid #e9edf2; border-radius: 14px; padding: 22px; margin-bottom: 18px; }
+  .compare-hero { background: linear-gradient(120deg, #17202a, #236b62); color: #fff; }
+  .compare-hero h1 { margin: 0 0 7px; }
+  .compare-hero p { margin: 0; color: #d7e7e3; }
+  .comparison-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(250px, 1fr)); gap: 14px; overflow-x: auto; }
+  .candidate-column { border: 1px solid #e5e9ed; border-radius: 12px; padding: 18px; min-width: 240px; position: relative; }
+  .candidate-column.top-pick { border: 2px solid #16a085; box-shadow: 0 8px 20px rgba(22,160,133,.18); }
+  .best-badge { background: #16a085; color: #fff; border-radius: 999px; padding: 5px 9px; font-size: 11px; font-weight: 700; position: absolute; right: 14px; top: 14px; }
+  .candidate-column h2 { margin: 0 0 5px; font-size: 18px; padding-right: 66px; }
+  .muted { color: #718096; font-size: 12px; }
+  .score { color: #16815f; font-size: 30px; font-weight: 700; margin: 18px 0 4px; }
+  .section { border-top: 1px solid #e9edf2; margin-top: 16px; padding-top: 14px; }
+  .section h3 { font-size: 12px; margin: 0 0 8px; text-transform: uppercase; letter-spacing: .05em; color: #718096; }
+  .section ul { padding-left: 18px; margin: 0; font-size: 12px; line-height: 1.6; }
+  .tag { display: inline-block; background: #e5f5ef; color: #187b62; border-radius: 20px; padding: 5px 8px; margin: 2px; font-size: 11px; }
+  .gap { background: #fff4dd; color: #8a5b00; }
+  .action { display: inline-block; background: #16a085; color: #fff; border-radius: 7px; padding: 9px 12px; text-decoration: none; margin: 12px 4px 0 0; font-size: 12px; }
+  .summary { background: #f7f9fb; border-left: 4px solid #16a085; line-height: 1.6; }
+  .warning { color: #8a5b00; background: #fff4dd; padding: 11px; border-radius: 8px; }
+  body.dark .compare-page { color: #f0f3f5; }
+  body.dark .candidate-column, body.dark .summary { border-color: #3b4044; background: #303437; }
+  body.dark .section { border-color: #3b4044; }
+  @media (max-width: 700px) { .comparison-grid { display: flex; overflow-x: auto; } .candidate-column { min-width: 290px; } }
+</style>
+
+<div class="compare-page">
+  <section class="compare-hero">
+    <h1>Compare Resumes</h1>
+    <p>{{ job.title }} · {{ comparison.candidates|length }} selected applicants ranked against this role.</p>
+  </section>
+
+  <section class="compare-panel">
+    <div class="comparison-grid">
+      {% for candidate in comparison.candidates %}
+      <article class="candidate-column {% if candidate.is_top_pick %}top-pick{% endif %}">
+        {% if candidate.is_top_pick %}<span class="best-badge">Best Match</span>{% endif %}
+        <h2>{{ candidate.name }}</h2>
+        <div class="muted">Applied {{ candidate.applied_at.strftime('%b %d, %Y') if candidate.applied_at else 'N/A' }}</div>
+        <div class="score">{{ '%.0f'|format(candidate.match_score) }}%</div>
+        <div class="muted">Overall AI match score · Rank #{{ candidate.rank }}</div>
+        {% if candidate.resume_filename %}<a class="action" href="{{ url_for('main.recruiter_application_resume', application_id=candidate.application_id) }}">View Resume</a>{% endif %}
+        <a class="action" href="{{ url_for('main.recruiter_application_profile', application_id=candidate.application_id) }}">Open Candidate Profile</a>
+        <a class="action" href="{{ url_for('main.interviews') }}">Quick AI Interview</a>
+        <form method="post" action="{{ url_for('main.shortlist_application', application_id=candidate.application_id) }}" style="display:inline"><button class="action" type="submit">Shortlist</button></form>
+
+        <div class="section"><h3>Skills Match</h3>
+          {% for skill in candidate.matched_skills %}<span class="tag">{{ skill }}</span>{% else %}<span class="muted">No matched skills extracted</span>{% endfor %}
+          {% if candidate.missing_skills %}<p><strong>Missing:</strong> {{ candidate.missing_skills|join(', ') }}</p>{% endif %}
+        </div>
+        <div class="section"><h3>Experience Match</h3><p>{{ candidate.experience_years }} years detected</p>{% if candidate.relevant_roles %}<ul>{% for role in candidate.relevant_roles %}<li>{{ role }}</li>{% endfor %}</ul>{% endif %}</div>
+        <div class="section"><h3>Education</h3><p>{{ candidate.education|join(', ') if candidate.education else 'Not detected in resume' }}</p></div>
+        <div class="section"><h3>Strengths</h3><ul>{% for item in candidate.strengths %}<li>{{ item }}</li>{% endfor %}</ul></div>
+        <div class="section"><h3>Gaps / Concerns</h3><ul>{% for item in candidate.gaps %}<li>{{ item }}</li>{% endfor %}</ul></div>
+      </article>
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="compare-panel summary">
+    <h2>AI Best-Fit Summary</h2>
+    <p>{{ comparison.summary }}</p>
+    {% if not comparison.strong_match %}<p class="warning">No selected candidate is a strong match yet. Common missing requirements: {{ comparison.common_missing|join(', ') if comparison.common_missing else 'review the job requirements and resume evidence' }}.</p>{% elif comparison.common_missing %}<p>Common gap across the comparison: {{ comparison.common_missing|join(', ') }}.</p>{% endif %}
+  </section>
+</div>
+{% endblock %}
