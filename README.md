@@ -36,7 +36,7 @@ To set up the RucRut application locally, follow these steps:
 ### **Steps**
 1. **Obtain the repository**:
    ```bash
-   git clone <repository-url>
+   git clone git@github.com:Lakshmikant992/RucRut.git
    cd RucRut
    ```
 
