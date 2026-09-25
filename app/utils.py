@@ -1,35 +1,32 @@
 import os
 import zipfile
 import xml.etree.ElementTree as ET
-from werkzeug.utils import secure_filename
-from flask import current_app
 import re
 import requests
 import json
 import time
 import logging
 import pdfplumber  # type: ignore
-try:
-    from sentence_transformers import SentenceTransformer, util  # type: ignore
-except Exception as exc:
-    logging.warning('SentenceTransformer dependencies unavailable; lexical scoring will be used: %s', exc)
-    SentenceTransformer = None
-    util = None
 
 logging.basicConfig(level=logging.DEBUG)
 
 MODEL_NAME = 'multi-qa-mpnet-base-dot-v1'
 _model = None
+_sentence_transformer_util = None
 
 
 def get_model():
-    """Load the sentence-transformer model lazily and gracefully handle offline or blocked downloads."""
-    global _model
+    """Load local embeddings only when explicitly enabled; otherwise use lexical scoring."""
+    global _model, _sentence_transformer, _sentence_transformer_util
     if _model is None:
+        if os.environ.get('ENABLE_LOCAL_EMBEDDINGS', '').lower() != 'true':
+            _model = False
+            return None
         try:
-            if SentenceTransformer is None:
-                raise RuntimeError('SentenceTransformer is unavailable')
-            _model = SentenceTransformer(MODEL_NAME)
+            from sentence_transformers import SentenceTransformer, util  # type: ignore
+            _sentence_transformer = SentenceTransformer
+            _sentence_transformer_util = util
+            _model = _sentence_transformer(MODEL_NAME)
         except Exception as exc:
             logging.warning("SentenceTransformer model could not be loaded: %s. Falling back to lexical similarity.", exc)
             _model = False
@@ -127,7 +124,7 @@ def compute_similarity(cv_text, job_description):
     embeddings_cv = model.encode(cv_text, convert_to_tensor=True)
     embeddings_job_desc = model.encode(job_description, convert_to_tensor=True)
 
-    similarity_score = util.cos_sim(embeddings_cv, embeddings_job_desc)
+    similarity_score = _sentence_transformer_util.cos_sim(embeddings_cv, embeddings_job_desc)
 
     return similarity_score.item()
 

@@ -20,6 +20,8 @@ services:
         value: applications
       - key: API_TOKEN
         sync: false
+      - key: ENABLE_LOCAL_EMBEDDINGS
+        value: "false"
       - key: CORS_ORIGINS
         value: ""
       - key: SESSION_TYPE
