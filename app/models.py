@@ -9,7 +9,7 @@ class User(db.Model):
     email = db.Column(db.String(120), unique=True, nullable=False)
     phone_number = db.Column(db.String(15), nullable=False)
     birthday = db.Column(db.String(10), nullable=False)
-    password = db.Column(db.String(60), nullable=False)
+    password = db.Column(db.String(255), nullable=False)
     role = db.Column(db.String(20), nullable=False, default='recruiter')
     bio = db.Column(db.Text)
     skills = db.Column(db.Text)

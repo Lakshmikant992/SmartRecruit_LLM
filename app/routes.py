@@ -1,5 +1,6 @@
 from flask import Blueprint, render_template, redirect, url_for, flash, request, session, g, current_app, abort, jsonify, send_from_directory
 from markdown import markdown
+from werkzeug.security import check_password_hash, generate_password_hash
 from werkzeug.utils import secure_filename
 from datetime import datetime, timedelta, timezone
 from functools import wraps
@@ -11,6 +12,7 @@ import pdfplumber  # type: ignore
 import logging
 import time
 import json
+from sqlalchemy import text
 
 from . import db, applications_collection
 from .models import User, Job, Application, Interview, InterviewFeedback, InterviewQuestionSet
@@ -216,6 +218,18 @@ def role_required(*allowed_roles):
         return wrapper
     return decorator
 
+@main.route('/healthz')
+def healthz():
+    try:
+        db.session.execute(text('SELECT 1'))
+        if current_app.config.get('MONGO_URI') and applications_collection is None:
+            return jsonify({'status': 'degraded', 'reason': 'mongodb unavailable'}), 503
+        return jsonify({'status': 'ok'}), 200
+    except Exception:
+        logging.exception('Health check database query failed')
+        return jsonify({'status': 'degraded'}), 503
+
+
 @main.route('/')
 def home():
     if g.user is None:
@@ -235,6 +249,8 @@ def auth():
             first_name = request.form['first_name']
             last_name = request.form['last_name']
             role = request.form.get('role', 'recruiter').strip().lower() or 'recruiter'
+            if role not in {'student', 'recruiter'}:
+                role = 'recruiter'
             company_name = request.form.get('company_name', '').strip() or ('Student' if role == 'student' else 'Recruiter')
             email = request.form['email']
             phone_number = request.form['phone_number']
@@ -261,7 +277,7 @@ def auth():
                 email=email,
                 phone_number=phone_number,
                 birthday=birthday,
-                password=password,
+                password=generate_password_hash(password),
                 role=role
             )
             db.session.add(user)
@@ -277,7 +293,13 @@ def auth():
             if user and not user.is_active:
                 flash('This account has been deactivated. Contact an administrator.', 'danger')
                 return redirect(url_for('main.auth'))
-            if user and user.password == password:
+            password_matches = False
+            if user:
+                password_matches = check_password_hash(user.password, password) if user.password.startswith('scrypt:') or user.password.startswith('pbkdf2:') else user.password == password
+                if password_matches and not user.password.startswith(('scrypt:', 'pbkdf2:')):
+                    user.password = generate_password_hash(password)
+                    db.session.commit()
+            if user and password_matches:
                 session['user_id'] = user.id
                 flash('Signin successful!', 'success')
                 if getattr(user, 'role', 'recruiter') == 'student':

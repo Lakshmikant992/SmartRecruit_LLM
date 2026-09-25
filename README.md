@@ -109,4 +109,38 @@ This project is licensed under the **3DSF License**.
 
 This project is also available on GitHub: [SmartRecruit_LLM](https://github.com/Lakshmikant992/SmartRecruit_LLM.git)
 
+## Free-tier deployment
+
+The repository includes `render.yaml` for a single Render Web Service. Because the
+frontend is server-rendered Flask/Jinja, the same HTTPS service serves the pages and
+the API; no separate JavaScript frontend build is required.
+
+Recommended free-tier services:
+
+- **Application:** Render Free Web Service
+- **Relational database:** Neon Free PostgreSQL
+- **Document database:** MongoDB Atlas Free cluster
+
+Create the Neon and Atlas databases first, then create the Render service from this
+repository. Configure the following Render environment variables without committing
+their values:
+
+`SECRET_KEY`, `DATABASE_URL`, `MONGO_URI`, `MONGO_DB_NAME`, `API_TOKEN`,
+`APP_ENV=production`, `SESSION_TYPE=filesystem`, `CORS_ORIGINS`, and
+`MAX_CONTENT_LENGTH=16777216`.
+
+Render uses `pip install -r requirements.txt` to build and
+`gunicorn --bind 0.0.0.0:$PORT --workers 1 --threads 2 --timeout 120 run:app` to
+start. The health check is `/healthz`. The application creates missing relational
+tables on startup and applies its existing additive schema checks; there is no
+committed Flask-Migrate revision history yet, so review a production schema migration
+before changing existing tables.
+
+Free Render filesystems are ephemeral, so uploaded CVs, profile photos, and local
+filesystem sessions are not durable across restarts. Use object storage and Redis
+before treating this as a production system with persistent uploads or shared sessions.
+Render Free Web Services also sleep after inactivity, and Neon Free and MongoDB Atlas
+Free have storage, compute, and throughput limits. See `.env.example` for local
+variable names and `render.yaml` for the deployment contract.
+
 ---

@@ -1,9 +1,11 @@
 import json
+import os
 
 from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 from flask_session import Session
 from flask_migrate import Migrate  # type: ignore
+from flask_cors import CORS
 from pymongo import MongoClient
 from sqlalchemy import text
 from sqlalchemy.exc import OperationalError
@@ -14,17 +16,19 @@ migrate = Migrate()
 sess = Session()
 
 
-def _get_mongo_collection():
+def _get_mongo_collection(mongo_uri, database_name):
+    if not mongo_uri:
+        return None
     try:
-        mongo_client = MongoClient('mongodb://localhost:27017/', serverSelectionTimeoutMS=500)
+        mongo_client = MongoClient(mongo_uri, serverSelectionTimeoutMS=3000)
         mongo_client.admin.command('ping')
-        mongodb = mongo_client['applications']
+        mongodb = mongo_client[database_name]
         return mongodb['applications']
     except Exception:
         return None
 
 
-applications_collection = _get_mongo_collection()
+applications_collection = None
 
 
 def _add_missing_column(table_name, column_name, column_sql):
@@ -121,9 +125,22 @@ def ensure_db_schema():
 
 
 def create_app():
+    global applications_collection
+
     app = Flask(__name__)
     app.config.from_object(Config)
     app.jinja_env.filters['from_json'] = json.loads
+
+    if os.environ.get('APP_ENV', 'development').lower() == 'production' and not os.environ.get('SECRET_KEY'):
+        raise RuntimeError('SECRET_KEY must be configured when APP_ENV=production')
+
+    if app.config['CORS_ORIGINS']:
+        CORS(app, origins=app.config['CORS_ORIGINS'], supports_credentials=True)
+
+    applications_collection = _get_mongo_collection(
+        app.config['MONGO_URI'],
+        app.config['MONGO_DB_NAME'],
+    )
 
     db.init_app(app)  
     migrate.init_app(app, db)
