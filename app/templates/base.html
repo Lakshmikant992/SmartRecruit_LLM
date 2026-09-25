@@ -11,7 +11,7 @@
 </head>
 <body>
     <div class="nav-scrim" data-nav-close aria-hidden="true"></div>
-    <nav aria-label="Primary navigation">
+    <nav id="primary-navigation" aria-label="Primary navigation">
         <div class="logo-name">
             <div class="logo-image">
                 <img src="{{ url_for('static', filename='images/logo.png') }}" alt="Logo">
@@ -100,26 +100,16 @@
     </nav>
     <section class="dashboard">
         <div class="top">
-            {% if user and user.role == 'admin' %}
-                <div class="admin-topbar-title">Dashboard overview</div>
-                <div class="admin-topbar-actions">
-                    <label class="admin-topbar-search"><i class="uil uil-search"></i><input type="search" placeholder="Search dashboard" aria-label="Search dashboard"></label>
-                    <button class="admin-notification" type="button" aria-label="Notifications"><i class="uil uil-bell"></i><span></span></button>
-                    <a class="admin-profile" href="{{ url_for('main.settings') }}"><span class="admin-profile-avatar">{{ user.first_name[:1] }}{{ user.last_name[:1] }}</span><span><strong>{{ user.first_name }} {{ user.last_name }}</strong><small>Administrator</small></span><i class="uil uil-angle-down"></i></a>
-                </div>
-            {% else %}
-                <i class="uil uil-bars sidebar-toggle"></i>
-                {% if user and user.profile_photo %}
-                    <a href="{{ url_for('main.student_profile' if user.role == 'student' else 'main.settings') }}">
-                        <img src="{{ url_for('static', filename='uploads/photos/' + user.profile_photo) }}" alt="Profile photo for {{ user.first_name }} {{ user.last_name }}" onerror="this.hidden=true; this.nextElementSibling.hidden=false;">
-                        <span class="avatar-fallback" hidden>{{ user.first_name[:1] }}{{ user.last_name[:1] }}</span>
-                    </a>
-                {% else %}
-                    <a href="{{ url_for('main.student_profile' if user and user.role == 'student' else 'main.settings') }}">
-                        <span class="avatar-fallback" aria-label="Profile initials">{{ user.first_name[:1] }}{{ user.last_name[:1] }}</span>
-                    </a>
-                {% endif %}
-            {% endif %}
+            <button class="sidebar-toggle icon-button" type="button" aria-label="Open navigation" aria-controls="primary-navigation"><i class="uil uil-bars"></i></button>
+            <div class="topbar-title">{% block topbar_title %}Workspace{% endblock %}</div>
+            <div class="topbar-actions">
+                <label class="topbar-search"><i class="uil uil-search"></i><input type="search" placeholder="Search" aria-label="Search"></label>
+                <button class="notification-button icon-button" type="button" aria-label="Notifications"><i class="uil uil-bell"></i><span></span></button>
+                <a class="profile-menu" href="{{ url_for('main.student_profile' if user and user.role == 'student' else 'main.settings') }}" aria-label="Open profile settings">
+                    {% if user and user.profile_photo %}<img src="{{ url_for('static', filename='uploads/photos/' + user.profile_photo) }}" alt="" onerror="this.hidden=true; this.nextElementSibling.hidden=false;"><span class="avatar-fallback" hidden>{{ user.first_name[:1] }}{{ user.last_name[:1] }}</span>{% else %}<span class="avatar-fallback">{{ user.first_name[:1] }}{{ user.last_name[:1] }}</span>{% endif %}
+                    <span class="profile-copy"><strong>{{ user.first_name }} {{ user.last_name }}</strong><small>{{ user.role|capitalize }}</small></span><i class="uil uil-angle-down profile-chevron"></i>
+                </a>
+            </div>
         </div>
         <div class="dash-content">
             {% block content %}{% endblock %}

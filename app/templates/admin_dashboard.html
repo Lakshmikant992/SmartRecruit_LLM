@@ -80,6 +80,16 @@
   @media(max-width:1100px){.metric-grid{grid-template-columns:repeat(3,1fr)}.create-form{grid-template-columns:repeat(2,1fr)}}
   @media(max-width:720px){body:has(.admin-shell) nav{width:70px;padding:22px 10px}body:has(.admin-shell) nav .logo-image img{width:45px}body:has(.admin-shell) nav .link-name{display:none}body:has(.admin-shell) .dashboard{left:70px;width:calc(100% - 70px);padding:0 16px 28px}body:has(.admin-shell) .dashboard .top{left:70px;width:calc(100% - 70px);padding:0 16px}.admin-topbar-search{display:none}.admin-profile strong,.admin-profile small,.admin-profile>i{display:none}.admin-nav{gap:14px;overflow-x:auto}.metric-grid,.chart-grid{grid-template-columns:1fr}.create-form{grid-template-columns:1fr}.admin-header h1{font-size:24px}}
 </style>
+<style>
+  /* Keep Admin on the same shell geometry as Recruiter and Student. */
+  body:has(.admin-shell) nav { width:var(--sidebar-width); padding:20px 14px; background:var(--surface); }
+  body:has(.admin-shell) nav .logo-image img { width:178px; }
+  body:has(.admin-shell) .dashboard { left:var(--sidebar-width); width:calc(100% - var(--sidebar-width)); padding:0 var(--shell-gap) 40px; background:var(--surface-muted); }
+  body:has(.admin-shell) .dashboard .top { left:var(--sidebar-width); width:calc(100% - var(--sidebar-width)); padding:0 var(--shell-gap); }
+  body:has(.admin-shell) .dash-content { padding-top:100px; }
+  @media(max-width:900px){body:has(.admin-shell) nav{width:76px;padding:20px 10px}body:has(.admin-shell) nav .logo-image img{width:45px}body:has(.admin-shell) .dashboard{left:76px;width:calc(100% - 76px);padding:0 20px 28px}body:has(.admin-shell) .dashboard .top{left:76px;width:calc(100% - 76px);padding:0 20px}}
+  @media(max-width:650px){body:has(.admin-shell) nav,body:has(.admin-shell) nav.close{width:min(290px,86vw)}body:has(.admin-shell) .dashboard,body:has(.admin-shell) nav.close ~ .dashboard{left:0;width:100%;padding:0 14px 28px}body:has(.admin-shell) .dashboard .top,body:has(.admin-shell) nav.close ~ .dashboard .top{left:0;width:100%;padding:0 14px}.admin-topbar-title,.admin-topbar-actions{display:none}}
+</style>
 <div class="admin-shell">
   <header class="admin-header">
     <div><h1>Admin control center</h1><p>Monitor recruitment activity and keep access, users, jobs, and interviews aligned.</p></div>

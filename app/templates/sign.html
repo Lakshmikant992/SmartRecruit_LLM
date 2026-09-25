@@ -61,7 +61,7 @@
 
     </style>
 </head>
-<body style="background-image: url('{{ url_for('static', filename='images/background.jpg') }}'); background-size: cover; background-position: center;">
+<body data-background-image="{{ url_for('static', filename='images/background.jpg') }}" style="background-size: cover; background-position: center;">
     <div class="alert-container">
         {% with messages = get_flashed_messages(with_categories=true) %}
             {% if messages %}
@@ -130,6 +130,7 @@
     </div>
     <script>
         document.addEventListener("DOMContentLoaded", () => {
+            document.body.style.backgroundImage = `url("${document.body.dataset.backgroundImage}")`;
             const signupBtn = document.getElementById("signup-btn");
             const signinBtn = document.getElementById("signin-btn");
             const mainContainer = document.querySelector(".container");

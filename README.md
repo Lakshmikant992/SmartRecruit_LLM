@@ -105,4 +105,8 @@ This project is licensed under the **3DSF License**.
 
 ---
 
-## 
+## **SmartRecruit_LLM**
+
+This project is also available on GitHub: [SmartRecruit_LLM](https://github.com/Lakshmikant992/SmartRecruit_LLM.git)
+
+---
